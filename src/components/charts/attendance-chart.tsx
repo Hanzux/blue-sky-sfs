@@ -7,17 +7,23 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
 
 const chartConfig = {
-    rate: {
-        label: 'Attendance Rate',
+    male: {
+        label: 'Male',
         color: 'hsl(var(--chart-2))',
+    },
+    female: {
+        label: 'Female',
+        color: 'hsl(var(--chart-1))',
     },
 } satisfies ChartConfig;
 
 type AttendanceChartProps = {
-    data: { day: string; rate: number }[];
+    data: { day: string; male: number, female: number }[];
 };
 
 export function AttendanceChart({ data }: AttendanceChartProps) {
@@ -36,10 +42,18 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
                     <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} />
                     <YAxis domain={[85, 100]} tickFormatter={(value) => `${value}%`}/>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                    <ChartLegend content={<ChartLegendContent />} />
                     <Line
-                        dataKey="rate"
+                        dataKey="male"
                         type="monotone"
-                        stroke="var(--color-rate)"
+                        stroke="var(--color-male)"
+                        strokeWidth={2}
+                        dot={true}
+                    />
+                     <Line
+                        dataKey="female"
+                        type="monotone"
+                        stroke="var(--color-female)"
                         strokeWidth={2}
                         dot={true}
                     />

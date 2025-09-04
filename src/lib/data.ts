@@ -29,6 +29,7 @@ export type Learner = {
   id: string;
   name: string;
   dob: string;
+  gender: 'Male' | 'Female';
   className: string;
   guardian: string;
   district: string;
@@ -36,9 +37,12 @@ export type Learner = {
 };
 
 export const initialLearners: Learner[] = [
-    { id: '1', name: 'John Doe', dob: '2015-03-12', className: 'Grade 1', guardian: 'Jane Doe', district: 'Mt Darwin', school: 'Dotito Primary School' },
-    { id: '2', name: 'Alice Smith', dob: '2016-07-21', className: 'Kindergarten', guardian: 'Bob Smith', district: 'Mbire', school: 'Mahuhwe Primary School' },
-    { id: '3', name: 'Michael Johnson', dob: '2014-11-02', className: 'Grade 2', guardian: 'Chris Johnson', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
+    { id: '1', name: 'John Doe', dob: '2015-03-12', gender: 'Male', className: 'Grade 1', guardian: 'Jane Doe', district: 'Mt Darwin', school: 'Dotito Primary School' },
+    { id: '2', name: 'Alice Smith', dob: '2016-07-21', gender: 'Female', className: 'Kindergarten', guardian: 'Bob Smith', district: 'Mbire', school: 'Mahuhwe Primary School' },
+    { id: '3', name: 'Michael Johnson', dob: '2014-11-02', gender: 'Male', className: 'Grade 2', guardian: 'Chris Johnson', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
+    { id: '4', name: 'Emily Brown', dob: '2015-09-05', gender: 'Female', className: 'Grade 1', guardian: 'William Brown', district: 'Mt Darwin', school: 'Dotito Primary School' },
+    { id: '5', name: 'David Wilson', dob: '2016-01-15', gender: 'Male', className: 'Kindergarten', guardian: 'Mary Wilson', district: 'Mbire', school: 'Mahuhwe Primary School' },
+    { id: '6', name: 'Sophia Miller', dob: '2014-06-30', gender: 'Female', className: 'Grade 2', guardian: 'James Miller', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
 ];
 
 export type FoodItem = {

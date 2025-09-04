@@ -7,17 +7,23 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
 
 const chartConfig = {
-  learners: {
-    label: 'Learners',
+  male: {
+    label: 'Male',
+    color: 'hsl(var(--chart-2))',
+  },
+  female: {
+    label: 'Female',
     color: 'hsl(var(--chart-1))',
   },
 } satisfies ChartConfig;
 
 type EnrollmentChartProps = {
-    data: { month: string; learners: number }[];
+    data: { month: string; male: number; female: number }[];
 };
 
 export function EnrollmentChart({ data }: EnrollmentChartProps) {
@@ -37,7 +43,9 @@ export function EnrollmentChart({ data }: EnrollmentChartProps) {
             cursor={false}
             content={<ChartTooltipContent indicator="dot" />}
           />
-          <Bar dataKey="learners" fill="var(--color-learners)" radius={4} />
+           <ChartLegend content={<ChartLegendContent />} />
+          <Bar dataKey="female" fill="var(--color-female)" radius={4} stackId="a" />
+          <Bar dataKey="male" fill="var(--color-male)" radius={4} stackId="a" />
         </BarChart>
       </ResponsiveContainer>
     </ChartContainer>

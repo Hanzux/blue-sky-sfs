@@ -30,22 +30,22 @@ import { Label } from '@/components/ui/label';
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
 const baseEnrollmentData = [
-  { month: 'January', learners: 186 },
-  { month: 'February', learners: 305 },
-  { month: 'March', learners: 237 },
-  { month: 'April', learners: 173 },
-  { month: 'May', learners: 209 },
-  { month: 'June', learners: 214 },
+  { month: 'January', male: 80, female: 106 },
+  { month: 'February', male: 150, female: 155 },
+  { month: 'March', male: 110, female: 127 },
+  { month: 'April', male: 80, female: 93 },
+  { month: 'May', male: 100, female: 109 },
+  { month: 'June', male: 104, female: 110 },
 ];
 
 const baseAttendanceData = [
-    { day: 'Mon', rate: 88.2 },
-    { day: 'Tue', rate: 91.5 },
-    { day: 'Wed', rate: 93.1 },
-    { day: 'Thu', rate: 90.3 },
-    { day: 'Fri', rate: 94.6 },
-    { day: 'Sat', rate: 92.8 },
-    { day: 'Sun', rate: 89.9 },
+    { day: 'Mon', male: 89.1, female: 87.5 },
+    { day: 'Tue', male: 92.3, female: 90.8 },
+    { day: 'Wed', male: 94.0, female: 92.2 },
+    { day: 'Thu', male: 91.5, female: 89.1 },
+    { day: 'Fri', male: 95.2, female: 94.0 },
+    { day: 'Sat', male: 93.1, female: 92.5 },
+    { day: 'Sun', male: 90.4, female: 89.5 },
 ];
 
 const baseMealsData = [
@@ -109,12 +109,20 @@ export function Dashboard() {
   // Simulate chart data changing based on filters for a more dynamic feel
   const enrollmentData = useMemo(() => {
       if (filterDistrict === 'All' && filterSchool === 'All') return baseEnrollmentData;
-      return baseEnrollmentData.map(d => ({...d, learners: Math.floor(d.learners * (Math.random() * 0.4 + 0.6))}));
+      return baseEnrollmentData.map(d => ({
+        ...d, 
+        male: Math.floor(d.male * (Math.random() * 0.4 + 0.6)),
+        female: Math.floor(d.female * (Math.random() * 0.4 + 0.6))
+    }));
   }, [filterDistrict, filterSchool]);
 
   const attendanceData = useMemo(() => {
       if (filterDistrict === 'All' && filterSchool === 'All') return baseAttendanceData;
-      return baseAttendanceData.map(d => ({...d, rate: parseFloat((d.rate * (Math.random() * 0.1 + 0.9)).toFixed(1))}));
+      return baseAttendanceData.map(d => ({
+          ...d, 
+          male: parseFloat((d.male * (Math.random() * 0.1 + 0.9)).toFixed(1)),
+          female: parseFloat((d.female * (Math.random() * 0.1 + 0.9)).toFixed(1))
+        }));
   }, [filterDistrict, filterSchool]);
 
   const mealsData = useMemo(() => {
@@ -227,7 +235,7 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle>Daily Attendance</CardTitle>
             <CardDescription>
-              Attendance rate for the last 7 days.
+              Attendance rate for the last 7 days by gender.
             </CardDescription>
           </CardHeader>
           <CardContent>

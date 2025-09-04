@@ -156,11 +156,11 @@ export default function LearnerEnrollmentPage() {
                 <TableHeader>
                     <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Gender</TableHead>
                     <TableHead className="hidden sm:table-cell">Date of Birth</TableHead>
                     <TableHead>District</TableHead>
                     <TableHead>School</TableHead>
                     <TableHead className="hidden md:table-cell">Class</TableHead>
-                    <TableHead className="hidden md:table-cell">Guardian</TableHead>
                     <TableHead>
                         <span className="sr-only">Actions</span>
                     </TableHead>
@@ -170,11 +170,11 @@ export default function LearnerEnrollmentPage() {
                     {filteredLearners.map((learner) => (
                     <TableRow key={learner.id}>
                         <TableCell className="font-medium">{learner.name}</TableCell>
+                        <TableCell>{learner.gender}</TableCell>
                         <TableCell className="hidden sm:table-cell">{learner.dob}</TableCell>
                         <TableCell>{learner.district}</TableCell>
                         <TableCell>{learner.school}</TableCell>
                         <TableCell className="hidden md:table-cell">{learner.className}</TableCell>
-                        <TableCell className="hidden md:table-cell">{learner.guardian}</TableCell>
                         <TableCell>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -215,6 +215,10 @@ export default function LearnerEnrollmentPage() {
                                 <div className="grid gap-1">
                                     <Label className="text-muted-foreground">Name</Label>
                                     <div>{viewingLearner.name}</div>
+                                </div>
+                                 <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Gender</Label>
+                                    <div>{viewingLearner.gender}</div>
                                 </div>
                                 <div className="grid gap-1">
                                     <Label className="text-muted-foreground">Date of Birth</Label>

@@ -21,6 +21,7 @@ import { initialSchools, type Learner } from '@/lib/data';
 const learnerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.string().min(1, 'Date of Birth is required'),
+  gender: z.enum(['Male', 'Female']),
   className: z.string().min(1, 'Class is required'),
   guardian: z.string().min(1, 'Guardian is required'),
   district: z.string().min(1, 'District is required'),
@@ -43,6 +44,7 @@ export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
     defaultValues: learner || {
       name: '',
       dob: '',
+      gender: 'Female',
       className: '',
       guardian: '',
       district: '',
@@ -79,19 +81,42 @@ export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="dob"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date of Birth</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+            <FormField
+            control={form.control}
+            name="dob"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Date of Birth</FormLabel>
+                <FormControl>
+                    <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+             <FormField
+            control={form.control}
+            name="gender"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Gender</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
          <FormField
           control={form.control}
           name="district"
