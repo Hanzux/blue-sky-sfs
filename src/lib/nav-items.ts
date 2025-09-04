@@ -1,5 +1,5 @@
 
-import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School } from "lucide-react";
+import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School, Contact } from "lucide-react";
 
 export const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -14,4 +14,5 @@ export const navItems = [
 
 export const adminNavItems = [
     { href: '/admin/users', icon: Users, label: 'User Management' },
+    { href: '/admin/caregivers', icon: Contact, label: 'Caregiver Management' },
 ]
