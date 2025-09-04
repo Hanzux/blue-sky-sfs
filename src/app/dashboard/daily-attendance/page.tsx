@@ -26,6 +26,7 @@ type AttendanceStatus = 'present' | 'absent' | 'excused';
 export default function DailyAttendancePage() {
   const [filterDistrict, setFilterDistrict] = useState<string>(districts[1] || 'All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
+  const [filterClass, setFilterClass] = useState<string>('All');
   const [attendanceDate, setAttendanceDate] = useState<Date | undefined>(new Date());
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const { toast } = useToast();
@@ -42,20 +43,44 @@ export default function DailyAttendancePage() {
     return ["All", ...schoolsInDistrict];
   }, [filterDistrict, filterSchool]);
 
+  const availableClasses = useMemo(() => {
+    if (filterSchool === 'All') {
+        setFilterClass('All');
+        return ['All'];
+    }
+    const schoolLearners = initialLearners.filter(l => l.school === filterSchool);
+    const classes = [...new Set(schoolLearners.map(l => l.className))];
+    if (!classes.includes(filterClass)) {
+        setFilterClass('All');
+    }
+    return ['All', ...classes];
+  }, [filterSchool, filterClass]);
+
   const filteredLearners = useMemo(() => {
     if (filterSchool === 'All') return [];
-    return initialLearners.filter(learner => learner.school === filterSchool);
-  }, [filterSchool]);
+    let learners = initialLearners.filter(learner => learner.school === filterSchool);
+    if(filterClass !== 'All') {
+        learners = learners.filter(learner => learner.className === filterClass);
+    }
+    return learners;
+  }, [filterSchool, filterClass]);
 
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
     const schoolsInDistrict = initialSchools.filter(s => s.district === district).map(s => s.name);
     setFilterSchool(schoolsInDistrict[0] || 'All');
+    setFilterClass('All');
     setAttendance({});
   }
 
   const handleSchoolChange = (school: string) => {
     setFilterSchool(school);
+    setFilterClass('All');
+    setAttendance({});
+  }
+
+  const handleClassChange = (className: string) => {
+    setFilterClass(className);
     setAttendance({});
   }
 
@@ -68,11 +93,12 @@ export default function DailyAttendancePage() {
       date: attendanceDate,
       school: filterSchool,
       district: filterDistrict,
+      class: filterClass,
       records: attendance,
     });
     toast({
       title: 'Attendance Saved',
-      description: `Attendance for ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been recorded.`,
+      description: `Attendance for ${filterClass} at ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been recorded.`,
     });
   }
   
@@ -95,7 +121,7 @@ export default function DailyAttendancePage() {
         <CardHeader>
           <CardTitle>Daily Attendance</CardTitle>
           <CardDescription>Record and monitor daily learner attendance for a selected school.</CardDescription>
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="mt-4 grid gap-4 md:grid-cols-4">
             <div className="grid gap-2">
               <Label>District</Label>
               <Select value={filterDistrict} onValueChange={handleDistrictChange}>
@@ -117,6 +143,17 @@ export default function DailyAttendancePage() {
                   {availableSchools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+                <Label>Class</Label>
+                <Select value={filterClass} onValueChange={handleClassChange} disabled={filterSchool === 'All'}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select Class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="grid gap-2">
                 <Label>Date</Label>
@@ -161,7 +198,7 @@ export default function DailyAttendancePage() {
                 )) : (
                     <TableRow>
                         <TableCell colSpan={2} className="text-center h-24">
-                            Select a school to record attendance.
+                            Select a school and class to record attendance.
                         </TableCell>
                     </TableRow>
                 )}
