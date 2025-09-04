@@ -8,6 +8,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
+import type { FoodItem } from '@/lib/data';
 
 const chartConfig = {
   stock: {
@@ -17,7 +18,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 type StockChartProps = {
-    data: { item: string; stock: number }[];
+    data: FoodItem[];
 };
 
 export function StockChart({ data }: StockChartProps) {
@@ -36,6 +37,8 @@ export function StockChart({ data }: StockChartProps) {
             tickLine={false}
             tickMargin={10}
             axisLine={false}
+            width={80}
+            tickFormatter={value => value.length > 12 ? `${value.substring(0, 12)}...` : value}
           />
           <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
           <Bar dataKey="stock" fill="var(--color-stock)" radius={4} />

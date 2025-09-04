@@ -8,6 +8,7 @@ import {
   Soup,
   Warehouse,
   ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import {
   Card,
@@ -28,7 +29,7 @@ import { Label } from '@/components/ui/label';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
-const enrollmentData = [
+const baseEnrollmentData = [
   { month: 'January', learners: 186 },
   { month: 'February', learners: 305 },
   { month: 'March', learners: 237 },
@@ -37,7 +38,7 @@ const enrollmentData = [
   { month: 'June', learners: 214 },
 ];
 
-const attendanceData = [
+const baseAttendanceData = [
     { day: 'Mon', rate: 88.2 },
     { day: 'Tue', rate: 91.5 },
     { day: 'Wed', rate: 93.1 },
@@ -47,10 +48,12 @@ const attendanceData = [
     { day: 'Sun', rate: 89.9 },
 ];
 
-const mealsData = [
+const baseMealsData = [
     { meal: 'Breakfast', servings: 1250, fill: 'var(--color-breakfast)' },
     { meal: 'Lunch', servings: 1181, fill: 'var(--color-lunch)' },
 ];
+
+const LOW_STOCK_THRESHOLD = 30;
 
 export function Dashboard() {
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
@@ -61,22 +64,64 @@ export function Dashboard() {
       return ["All", ...initialSchools.map(s => s.name)];
     }
     const schoolsInDistrict = initialSchools.filter(s => s.district === filterDistrict).map(s => s.name);
-    setFilterSchool(schoolsInDistrict[0] || 'All');
+    // Reset school filter when district changes if the school is not in the new district
+    if (!schoolsInDistrict.includes(filterSchool)) {
+        setFilterSchool('All');
+    }
     return ["All", ...schoolsInDistrict];
-  }, [filterDistrict]);
+  }, [filterDistrict, filterSchool]);
 
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
-    setFilterSchool('All');
+    setFilterSchool('All'); // Reset school when district changes
   }
+  
+  const filteredData = useMemo(() => {
+    const learners = initialLearners.filter(l => 
+        (filterDistrict === 'All' || l.district === filterDistrict) && 
+        (filterSchool === 'All' || l.school === filterSchool)
+    );
+    const foodItems = initialFoodItems.filter(item => 
+        (filterDistrict === 'All' || item.district === filterDistrict) && 
+        (filterSchool === 'All' || item.school === filterSchool)
+    );
 
-  const stockData = useMemo(() => {
-    return initialFoodItems.filter(item => {
-        const districtMatch = filterDistrict === 'All' || item.district === filterDistrict;
-        const schoolMatch = filterSchool === 'All' || item.school === filterSchool;
-        return districtMatch && schoolMatch;
-    });
+    return { learners, foodItems };
   }, [filterDistrict, filterSchool]);
+
+  const dashboardMetrics = useMemo(() => {
+    const totalLearners = filteredData.learners.length;
+    const lowStockItems = filteredData.foodItems.filter(item => item.stock < LOW_STOCK_THRESHOLD);
+    
+    // Simulate metrics changing with filters
+    const isFiltered = filterDistrict !== 'All' || filterSchool !== 'All';
+    const attendanceRate = isFiltered ? (Math.random() * 5 + 90).toFixed(1) : 92.8;
+    const mealsServed = isFiltered ? Math.floor(Math.random() * 500 + 2000) : 2431;
+
+    return {
+      totalLearners,
+      attendanceRate: Number(attendanceRate),
+      mealsServed,
+      lowStockItems,
+    };
+  }, [filteredData]);
+
+  // Simulate chart data changing based on filters for a more dynamic feel
+  const enrollmentData = useMemo(() => {
+      if (filterDistrict === 'All' && filterSchool === 'All') return baseEnrollmentData;
+      return baseEnrollmentData.map(d => ({...d, learners: Math.floor(d.learners * (Math.random() * 0.4 + 0.6))}));
+  }, [filterDistrict, filterSchool]);
+
+  const attendanceData = useMemo(() => {
+      if (filterDistrict === 'All' && filterSchool === 'All') return baseAttendanceData;
+      return baseAttendanceData.map(d => ({...d, rate: parseFloat((d.rate * (Math.random() * 0.1 + 0.9)).toFixed(1))}));
+  }, [filterDistrict, filterSchool]);
+
+  const mealsData = useMemo(() => {
+    if (filterDistrict === 'All' && filterSchool === 'All') return baseMealsData;
+    return baseMealsData.map(d => ({...d, servings: Math.floor(d.servings * (Math.random() * 0.4 + 0.6))}));
+  }, [filterDistrict, filterSchool]);
+
 
   return (
     <div className="grid flex-1 items-start gap-4 lg:gap-6">
@@ -111,7 +156,7 @@ export function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,254</div>
+            <div className="text-2xl font-bold">{dashboardMetrics.totalLearners.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground flex items-center">
               <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
               20.1% from last month
@@ -126,10 +171,14 @@ export function Dashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">92.8%</div>
+            <div className="text-2xl font-bold">{dashboardMetrics.attendanceRate}%</div>
             <p className="text-xs text-muted-foreground flex items-center">
-              <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-              2.5% from yesterday
+              {dashboardMetrics.attendanceRate > 92 ? (
+                <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+              ) : (
+                <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
+              )}
+              {Math.abs(dashboardMetrics.attendanceRate - 92.8).toFixed(1)}% from base
             </p>
           </CardContent>
         </Card>
@@ -141,7 +190,7 @@ export function Dashboard() {
             <Soup className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,431</div>
+            <div className="text-2xl font-bold">{dashboardMetrics.mealsServed.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Breakfast & Lunch</p>
           </CardContent>
         </Card>
@@ -151,9 +200,12 @@ export function Dashboard() {
             <Warehouse className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">3</div>
-            <p className="text-xs text-muted-foreground">
-              Maize Meal, Salt, Beans
+            <div className="text-2xl font-bold text-accent">{dashboardMetrics.lowStockItems.length}</div>
+            <p className="text-xs text-muted-foreground truncate">
+                {dashboardMetrics.lowStockItems.length > 0 
+                    ? dashboardMetrics.lowStockItems.map(i => i.name).join(', ') 
+                    : 'All stock levels are good'
+                }
             </p>
           </CardContent>
         </Card>
@@ -204,7 +256,7 @@ export function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <StockChart data={stockData} />
+            <StockChart data={filteredData.foodItems} />
           </CardContent>
         </Card>
       </div>
