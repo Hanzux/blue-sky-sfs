@@ -47,12 +47,14 @@ export type FoodItem = {
     category: string;
     unit: string;
     stock: number;
+    district?: string;
+    school?: string;
 };
   
 export const initialFoodItems: FoodItem[] = [
-    { id: '1', name: 'Maize Meal', category: 'Grains', unit: 'kg', stock: 150 },
-    { id: '2', name: 'Beans', category: 'Legumes', unit: 'kg', stock: 80 },
-    { id: '3', name: 'Cooking Oil', category: 'Oils', unit: 'litres', stock: 50 },
-    { id: '4', name: 'Salt', category: 'Condiments', unit: 'kg', stock: 25 },
-    { id: '5', name: 'Sugar', category: 'Condiments', unit: 'kg', stock: 100 },
+    { id: '1', name: 'Maize Meal', category: 'Grains', unit: 'kg', stock: 150, district: 'Mt Darwin', school: 'Dotito Primary School' },
+    { id: '2', name: 'Beans', category: 'Legumes', unit: 'kg', stock: 80, district: 'Mt Darwin', school: 'Dotito Primary School'  },
+    { id: '3', name: 'Cooking Oil', category: 'Oils', unit: 'litres', stock: 50, district: 'Mbire', school: 'Mahuhwe Primary School'  },
+    { id: '4', name: 'Salt', category: 'Condiments', unit: 'kg', stock: 25, district: 'Mbire', school: 'Mahuhwe Primary School'  },
+    { id: '5', name: 'Sugar', category: 'Condiments', unit: 'kg', stock: 100, district: 'Mt Darwin', school: 'Kadohwata Primary School' },
 ];

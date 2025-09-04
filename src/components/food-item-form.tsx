@@ -2,7 +2,7 @@
 'use client';
 
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -14,13 +14,16 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import type { FoodItem } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { initialSchools, type FoodItem } from '@/lib/data';
 
 const foodItemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category: z.string().min(1, 'Category is required'),
   unit: z.string().min(1, 'Unit of measure is required'),
   stock: z.coerce.number().min(0, 'Stock level is required'),
+  district: z.string().optional(),
+  school: z.string().optional(),
 });
 
 type FoodItemFormValues = z.infer<typeof foodItemSchema>;
@@ -30,6 +33,8 @@ type FoodItemFormProps = {
   foodItem?: FoodItem;
 };
 
+const districts = [...new Set(initialSchools.map(school => school.district))];
+
 export function FoodItemForm({ onSubmit, foodItem }: FoodItemFormProps) {
   const form = useForm<FoodItemFormValues>({
     resolver: zodResolver(foodItemSchema),
@@ -38,7 +43,14 @@ export function FoodItemForm({ onSubmit, foodItem }: FoodItemFormProps) {
       category: '',
       unit: '',
       stock: 0,
+      district: '',
+      school: '',
     },
+  });
+
+  const selectedDistrict = useWatch({
+    control: form.control,
+    name: 'district',
   });
 
   const handleSubmit = (data: FoodItemFormValues) => {
@@ -61,6 +73,52 @@ export function FoodItemForm({ onSubmit, foodItem }: FoodItemFormProps) {
               <FormControl>
                 <Input placeholder="e.g. Maize Meal" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="district"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>District</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a district" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {districts.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="school"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>School</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedDistrict}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a school" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {initialSchools
+                    .filter(school => school.district === selectedDistrict)
+                    .map(school => (
+                      <SelectItem key={school.id} value={school.name}>{school.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
