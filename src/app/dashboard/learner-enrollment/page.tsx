@@ -27,20 +27,7 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
-
-type Learner = {
-  id: string;
-  name: string;
-  dob: string;
-  className: string;
-  guardian: string;
-};
-
-const initialLearners: Learner[] = [
-    { id: '1', name: 'John Doe', dob: '2015-03-12', className: 'Grade 1', guardian: 'Jane Doe' },
-    { id: '2', name: 'Alice Smith', dob: '2016-07-21', className: 'Kindergarten', guardian: 'Bob Smith' },
-    { id: '3', name: 'Michael Johnson', dob: '2014-11-02', className: 'Grade 2', guardian: 'Chris Johnson' },
-];
+import { initialLearners, type Learner } from '@/lib/data';
 
 
 export default function LearnerEnrollmentPage() {

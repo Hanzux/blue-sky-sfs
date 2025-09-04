@@ -2,7 +2,7 @@
 'use client';
 
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -14,12 +14,16 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { initialSchools } from '@/lib/data';
 
 const learnerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   dob: z.string().min(1, 'Date of Birth is required'),
   className: z.string().min(1, 'Class is required'),
   guardian: z.string().min(1, 'Guardian is required'),
+  district: z.string().min(1, 'District is required'),
+  school: z.string().min(1, 'School is required'),
 });
 
 type LearnerFormValues = z.infer<typeof learnerSchema>;
@@ -37,6 +41,8 @@ type LearnerFormProps = {
   learner?: Learner;
 };
 
+const districts = [...new Set(initialSchools.map(school => school.district))];
+
 export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
   const form = useForm<LearnerFormValues>({
     resolver: zodResolver(learnerSchema),
@@ -45,7 +51,14 @@ export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
       dob: '',
       className: '',
       guardian: '',
+      district: '',
+      school: '',
     },
+  });
+
+  const selectedDistrict = useWatch({
+    control: form.control,
+    name: 'district',
   });
 
   const handleSubmit = (data: LearnerFormValues) => {
@@ -81,6 +94,52 @@ export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+         <FormField
+          control={form.control}
+          name="district"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>District</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a district" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {districts.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="school"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>School</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedDistrict}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a school" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {initialSchools
+                    .filter(school => school.district === selectedDistrict)
+                    .map(school => (
+                      <SelectItem key={school.id} value={school.name}>{school.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
