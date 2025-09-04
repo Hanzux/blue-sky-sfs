@@ -107,9 +107,9 @@ export default function UserManagementPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const [createState, createFormAction] = useActionState(createUser, null);
-  const [updateState, updateFormAction] = useActionState(updateUser, null);
-  const [deleteState, deleteFormAction] = useActionState(deleteUser, null);
+  const [createState, createFormAction, isCreatePending] = useActionState(createUser, null);
+  const [updateState, updateFormAction, isUpdatePending] = useActionState(updateUser, null);
+  const [deleteState, deleteFormAction, isDeletePending] = useActionState(deleteUser, null);
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -119,33 +119,35 @@ export default function UserManagementPage() {
     resolver: zodResolver(updateUserSchema),
   });
 
-  useEffect(() => {
-    async function loadUsers() {
-      setLoading(true);
-      try {
-        const fetchedUsers = await getUsers();
-        setUsers(fetchedUsers);
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Failed to fetch users.',
-        });
-      }
-      setLoading(false);
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const fetchedUsers = await getUsers();
+      setUsers(fetchedUsers);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to fetch users.',
+      });
     }
-    loadUsers();
-  }, []);
+    setLoading(false);
+  };
 
-  const handleActionState = (state: any, successMessage: string) => {
-    if (state?.type === 'success') {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  
+  const handleActionState = (state: any, successMessage: string, closeDialogs: () => void) => {
+    if (!state) return;
+    if (state.type === 'success') {
       toast({ title: 'Success', description: state.message || successMessage });
-      setIsCreateDialogOpen(false);
-      setIsEditDialogOpen(false);
-      setIsDeleteDialogOpen(false);
-      getUsers().then(setUsers); // Refresh users
-    }
-    if (state?.type === 'error') {
+      closeDialogs();
+      fetchUsers();
+      if (state.message?.includes('created')) {
+        createForm.reset();
+      }
+    } else if (state.type === 'error') {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -154,18 +156,17 @@ export default function UserManagementPage() {
     }
   };
 
-  useEffect(
-    () => handleActionState(createState, 'User created successfully.'),
-    [createState]
-  );
-  useEffect(
-    () => handleActionState(updateState, 'User updated successfully.'),
-    [updateState]
-  );
-  useEffect(
-    () => handleActionState(deleteState, 'User deleted successfully.'),
-    [deleteState]
-  );
+  useEffect(() => {
+     handleActionState(createState, 'User created successfully.', () => setIsCreateDialogOpen(false));
+  }, [createState]);
+ 
+   useEffect(() => {
+     handleActionState(updateState, 'User updated successfully.', () => setIsEditDialogOpen(false));
+   }, [updateState]);
+ 
+   useEffect(() => {
+     handleActionState(deleteState, 'User deleted successfully.', () => setIsDeleteDialogOpen(false));
+   }, [deleteState]);
 
   const handleEditClick = (user: User) => {
     setSelectedUser(user);
@@ -277,8 +278,8 @@ export default function UserManagementPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full">
-                      Create User
+                    <Button type="submit" className="w-full" disabled={isCreatePending}>
+                      {isCreatePending ? 'Creating...' : 'Create User'}
                     </Button>
                   </form>
                 </Form>
@@ -355,6 +356,7 @@ export default function UserManagementPage() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDeleteClick(user)}
+                                className="text-red-600"
                               >
                                 Delete
                               </DropdownMenuItem>
@@ -404,8 +406,8 @@ export default function UserManagementPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Update User
+              <Button type="submit" className="w-full" disabled={isUpdatePending}>
+                {isUpdatePending ? 'Updating...' : 'Update User'}
               </Button>
             </form>
           </Form>
@@ -430,8 +432,8 @@ export default function UserManagementPage() {
             <form action={deleteFormAction}>
               <input type="hidden" name="uid" value={selectedUser?.uid} />
               <AlertDialogAction asChild>
-                <Button type="submit" variant="destructive">
-                  Delete
+                <Button type="submit" variant="destructive" disabled={isDeletePending}>
+                  {isDeletePending ? 'Deleting...' : 'Delete'}
                 </Button>
               </AlertDialogAction>
             </form>
