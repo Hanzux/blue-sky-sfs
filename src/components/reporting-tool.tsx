@@ -69,7 +69,7 @@ export function ReportingTool() {
           <CardDescription>Generate a summary of key metrics over a selected date range.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-3">
-          <div className="grid gap-2">
+          <div className="grid gap-2 mr-4">
             <Label htmlFor="date-range">Date Range</Label>
             <DateRangePicker date={date} onDateChange={setDate} className="w-full" />
           </div>
