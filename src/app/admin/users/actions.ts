@@ -9,6 +9,7 @@ const createUserSchema = z.object({
   name: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(6),
+  role: z.string().min(1, 'Role is required'),
 });
 
 const updateUserSchema = z.object({
@@ -36,6 +37,7 @@ export async function getUsers() {
       email: user.email,
       name: user.displayName,
       createdAt: user.metadata.creationTime,
+      role: user.customClaims?.role,
     }));
   } catch (error: any) {
     console.error('Error fetching users:', error);
@@ -64,7 +66,7 @@ export async function createUser(prevState: any, formData: FormData) {
     };
   }
 
-  const { email, password, name } = validatedFields.data;
+  const { email, password, name, role } = validatedFields.data;
 
   try {
     const userRecord = await adminAuth.createUser({
@@ -73,12 +75,12 @@ export async function createUser(prevState: any, formData: FormData) {
       displayName: name,
     });
 
-    await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'admin' });
+    await adminAuth.setCustomUserClaims(userRecord.uid, { role });
     
     revalidatePath('/admin/users');
     return {
       type: 'success',
-      message: `User ${name} created successfully.`,
+      message: `User ${name} created successfully with role ${role}.`,
     };
   } catch (error: any) {
     return {

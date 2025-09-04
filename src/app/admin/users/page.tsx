@@ -51,10 +51,27 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { getUsers, createUser, updateUser, deleteUser } from './actions';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+
+const userRoles = [
+  'System Admin',
+  'Project Coordinator',
+  'School Headmaster',
+  'Teacher',
+  'Store Clerk',
+  'Cook',
+];
 
 const createUserSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
@@ -62,6 +79,7 @@ const createUserSchema = z.object({
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters.' }),
+  role: z.string().min(1, { message: 'Please select a role.' }),
 });
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
@@ -77,7 +95,8 @@ type User = {
   name?: string;
   email?: string;
   createdAt: string;
-}
+  role?: string;
+};
 
 export default function UserManagementPage() {
   const { toast } = useToast();
@@ -94,7 +113,7 @@ export default function UserManagementPage() {
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
-    defaultValues: { name: '', email: '', password: '' },
+    defaultValues: { name: '', email: '', password: '', role: '' },
   });
   const updateForm = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema),
@@ -134,15 +153,27 @@ export default function UserManagementPage() {
       });
     }
   };
-  
-  useEffect(() => handleActionState(createState, 'User created successfully.'), [createState]);
-  useEffect(() => handleActionState(updateState, 'User updated successfully.'), [updateState]);
-  useEffect(() => handleActionState(deleteState, 'User deleted successfully.'), [deleteState]);
-  
+
+  useEffect(
+    () => handleActionState(createState, 'User created successfully.'),
+    [createState]
+  );
+  useEffect(
+    () => handleActionState(updateState, 'User updated successfully.'),
+    [updateState]
+  );
+  useEffect(
+    () => handleActionState(deleteState, 'User deleted successfully.'),
+    [deleteState]
+  );
 
   const handleEditClick = (user: User) => {
     setSelectedUser(user);
-    updateForm.reset({ uid: user.uid, name: user.name || '', email: user.email || '' });
+    updateForm.reset({
+      uid: user.uid,
+      name: user.name || '',
+      email: user.email || '',
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -162,7 +193,10 @@ export default function UserManagementPage() {
                 Create, view, and manage system administrators.
               </CardDescription>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <PlusCircle className="mr-2" /> New User
@@ -174,28 +208,78 @@ export default function UserManagementPage() {
                 </DialogHeader>
                 <Form {...createForm}>
                   <form action={createFormAction} className="space-y-4">
-                    <FormField control={createForm.control} name="name" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl><Input placeholder="Full Name" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={createForm.control} name="email" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl><Input placeholder="email@example.com" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <FormField control={createForm.control} name="password" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl><Input type="password" {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <Button type="submit" className="w-full">Create User</Button>
+                    <FormField
+                      control={createForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Full Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="email@example.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={createForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a role" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {userRoles.map((role) => (
+                                <SelectItem key={role} value={role}>
+                                  {role}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full">
+                      Create User
+                    </Button>
                   </form>
                 </Form>
               </DialogContent>
@@ -209,41 +293,76 @@ export default function UserManagementPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Created At</TableHead>
-                  <TableHead><span className="sr-only">Actions</span></TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : users.map((user) => (
-                  <TableRow key={user.uid}>
-                    <TableCell>{user.name || '-'}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditClick(user)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteClick(user)}>Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading
+                  ? Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-[150px]" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-[200px]" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-[100px]" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-[120px]" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : users.map((user) => (
+                      <TableRow key={user.uid}>
+                        <TableCell>{user.name || '-'}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          {user.role ? (
+                            <Badge variant="secondary">{user.role}</Badge>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleEditClick(user)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(user)}
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
               </TableBody>
             </Table>
           </div>
@@ -259,47 +378,66 @@ export default function UserManagementPage() {
           <Form {...updateForm}>
             <form action={updateFormAction} className="space-y-4">
               <input type="hidden" {...updateForm.register('uid')} />
-              <FormField control={updateForm.control} name="name" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={updateForm.control} name="email" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <Button type="submit" className="w-full">Update User</Button>
+              <FormField
+                control={updateForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={updateForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Update User
+              </Button>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-      
-      {/* Delete Alert Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the user account.
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <form action={deleteFormAction}>
-                    <input type="hidden" name="uid" value={selectedUser?.uid} />
-                    <AlertDialogAction asChild>
-                        <Button type="submit" variant="destructive">Delete</Button>
-                    </AlertDialogAction>
-                  </form>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
 
+      {/* Delete Alert Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              user account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <form action={deleteFormAction}>
+              <input type="hidden" name="uid" value={selectedUser?.uid} />
+              <AlertDialogAction asChild>
+                <Button type="submit" variant="destructive">
+                  Delete
+                </Button>
+              </AlertDialogAction>
+            </form>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
