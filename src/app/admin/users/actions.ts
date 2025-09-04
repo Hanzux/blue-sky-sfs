@@ -10,6 +10,13 @@ const createUserSchema = z.object({
 });
 
 export async function createUser(prevState: any, formData: FormData) {
+  if (!adminAuth) {
+    return {
+      type: 'error',
+      message: 'Firebase Admin SDK is not initialized. Please check your service account credentials.',
+    };
+  }
+  
   const validatedFields = createUserSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
