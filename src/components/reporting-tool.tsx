@@ -62,7 +62,7 @@ export function ReportingTool() {
   };
 
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className="w-full max-w-6xl">
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle className="font-headline">Simplified Reporting Tool</CardTitle>
