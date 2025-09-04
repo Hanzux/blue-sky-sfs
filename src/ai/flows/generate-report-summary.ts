@@ -17,6 +17,7 @@ const GenerateReportSummaryInputSchema = z.object({
   dateRange: z.string().describe('The date range for the report.'),
   userRole: z.string().describe('The role of the user requesting the summary.'),
   screenContext: z.string().describe('The context of the screen where the summary will be displayed.'),
+  keyMetric: z.string().describe('The key metric to focus on for the summary.'),
 });
 
 export type GenerateReportSummaryInput = z.infer<typeof GenerateReportSummaryInputSchema>;
@@ -43,11 +44,12 @@ You will be provided with the following information:
 - Date Range: {{{dateRange}}}
 - User Role: {{{userRole}}}
 - Screen Context: {{{screenContext}}}
+- Key Metric to focus on: {{{keyMetric}}}
 
 Based on this information, generate a concise and informative summary of the report.
-The summary should be tailored to the user's role and the screen context.
+The summary should be tailored to the user's role and the screen context, with a special focus on the specified key metric.
 Consider whether to add or subtract details based on the user and screen context to keep the summary concise and relevant.
-`, // Removed conditional logic from here
+`,
 });
 
 const generateReportSummaryFlow = ai.defineFlow(
