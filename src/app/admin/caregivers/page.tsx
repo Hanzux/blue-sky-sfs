@@ -28,6 +28,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -77,6 +78,7 @@ export default function CaregiverManagementPage() {
   const [loading, setLoading] = useState(true);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
@@ -140,6 +142,11 @@ export default function CaregiverManagementPage() {
     form.reset({ name: '', email: '', phone: '' });
     setIsFormDialogOpen(true);
   };
+  
+  const handleViewClick = (caregiver: Caregiver) => {
+    setSelectedCaregiver(caregiver);
+    setIsViewDialogOpen(true);
+  }
 
   const handleEditClick = (caregiver: Caregiver) => {
     setSelectedCaregiver(caregiver);
@@ -289,6 +296,11 @@ export default function CaregiverManagementPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                onClick={() => handleViewClick(caregiver)}
+                              >
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => handleEditClick(caregiver)}
                               >
                                 Edit
@@ -309,6 +321,32 @@ export default function CaregiverManagementPage() {
           </div>
         </CardContent>
       </Card>
+
+       {/* View Dialog */}
+       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>View Caregiver</DialogTitle>
+            <DialogDescription>
+              Details for {selectedCaregiver?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Name</Label>
+              <div id="name" className="col-span-3">{selectedCaregiver?.name}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">Email</Label>
+              <div id="email" className="col-span-3">{selectedCaregiver?.email}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">Phone</Label>
+              <div id="phone" className="col-span-3">{selectedCaregiver?.phone}</div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Alert Dialog */}
       <AlertDialog

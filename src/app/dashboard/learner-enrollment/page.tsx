@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,8 +36,10 @@ const districts = ["All", ...new Set(initialSchools.map(school => school.distric
 
 export default function LearnerEnrollmentPage() {
   const [learners, setLearners] = useState<Learner[]>(initialLearners);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingLearner, setEditingLearner] = useState<Learner | undefined>(undefined);
+  const [viewingLearner, setViewingLearner] = useState<Learner | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
 
@@ -63,29 +66,34 @@ export default function LearnerEnrollmentPage() {
   const handleAddLearner = (learner: Omit<Learner, 'id'>) => {
     const newLearner = { ...learner, id: (learners.length + 1).toString() };
     setLearners([...learners, newLearner]);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
   
   const handleUpdateLearner = (learner: Learner) => {
     setLearners(learners.map(l => l.id === learner.id ? learner : l));
     setEditingLearner(undefined);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   }
 
   const handleDeleteLearner = (id: string) => {
     setLearners(learners.filter(learner => learner.id !== id));
   };
+  
+  const handleViewClick = (learner: Learner) => {
+    setViewingLearner(learner);
+    setIsViewDialogOpen(true);
+  }
 
   const handleEditClick = (learner: Learner) => {
     setEditingLearner(learner);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   }
 
-  const handleDialogClose = (open: boolean) => {
+  const handleFormDialogClose = (open: boolean) => {
     if (!open) {
       setEditingLearner(undefined);
     }
-    setIsDialogOpen(open);
+    setIsFormDialogOpen(open);
   }
 
   return (
@@ -97,7 +105,7 @@ export default function LearnerEnrollmentPage() {
                     <CardTitle>Learner Enrollment</CardTitle>
                     <CardDescription>Manage and enroll new learners into the system.</CardDescription>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
+                <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
                     <DialogTrigger asChild>
                         <Button>
                             <PlusCircle className="mr-2" />
@@ -174,8 +182,9 @@ export default function LearnerEnrollmentPage() {
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditClick(learner)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteLearner(learner.id)}>Delete</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewClick(learner)}>View</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditClick(learner)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteLearner(learner.id)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -186,6 +195,44 @@ export default function LearnerEnrollmentPage() {
             </div>
         </CardContent>
         </Card>
+
+        {/* View Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>View Learner</DialogTitle>
+                    <DialogDescription>Details for {viewingLearner?.name}.</DialogDescription>
+                </DialogHeader>
+                {viewingLearner && (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Name</Label>
+                            <div className="col-span-3">{viewingLearner.name}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Date of Birth</Label>
+                            <div className="col-span-3">{viewingLearner.dob}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">District</Label>
+                            <div className="col-span-3">{viewingLearner.district}</div>
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">School</Label>
+                            <div className="col-span-3">{viewingLearner.school}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Class</Label>
+                            <div className="col-span-3">{viewingLearner.className}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Guardian</Label>
+                            <div className="col-span-3">{viewingLearner.guardian}</div>
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }

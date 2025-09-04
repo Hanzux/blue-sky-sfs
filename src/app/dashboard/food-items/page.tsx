@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,8 +36,10 @@ const districts = ["All", ...new Set(initialSchools.map(school => school.distric
 
 export default function FoodItemsPage() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>(initialFoodItems);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<FoodItem | undefined>(undefined);
+  const [viewingItem, setViewingItem] = useState<FoodItem | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
 
@@ -63,29 +66,34 @@ export default function FoodItemsPage() {
   const handleAddItem = (item: Omit<FoodItem, 'id'>) => {
     const newItem = { ...item, id: (foodItems.length + 1).toString() };
     setFoodItems([...foodItems, newItem]);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
   
   const handleUpdateItem = (item: FoodItem) => {
     setFoodItems(foodItems.map(i => i.id === item.id ? item : i));
     setEditingItem(undefined);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   }
 
   const handleDeleteItem = (id: string) => {
     setFoodItems(foodItems.filter(item => item.id !== id));
   };
+  
+  const handleViewClick = (item: FoodItem) => {
+    setViewingItem(item);
+    setIsViewDialogOpen(true);
+  }
 
   const handleEditClick = (item: FoodItem) => {
     setEditingItem(item);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   }
 
-  const handleDialogClose = (open: boolean) => {
+  const handleFormDialogClose = (open: boolean) => {
     if (!open) {
       setEditingItem(undefined);
     }
-    setIsDialogOpen(open);
+    setIsFormDialogOpen(open);
   }
 
   return (
@@ -97,7 +105,7 @@ export default function FoodItemsPage() {
                     <CardTitle>Food Items</CardTitle>
                     <CardDescription>Manage the list of food items used in the feeding program.</CardDescription>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
+                <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
                     <DialogTrigger asChild>
                         <Button>
                             <PlusCircle className="mr-2" />
@@ -174,8 +182,9 @@ export default function FoodItemsPage() {
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditClick(item)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteItem(item.id)}>Delete</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewClick(item)}>View</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditClick(item)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteItem(item.id)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -186,6 +195,44 @@ export default function FoodItemsPage() {
             </div>
         </CardContent>
         </Card>
+        
+        {/* View Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>View Food Item</DialogTitle>
+                    <DialogDescription>Details for {viewingItem?.name}.</DialogDescription>
+                </DialogHeader>
+                {viewingItem && (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Name</Label>
+                            <div className="col-span-3">{viewingItem.name}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Category</Label>
+                            <div className="col-span-3">{viewingItem.category}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">District</Label>
+                            <div className="col-span-3">{viewingItem.district || '-'}</div>
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">School</Label>
+                            <div className="col-span-3">{viewingItem.school || '-'}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Unit</Label>
+                            <div className="col-span-3">{viewingItem.unit}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Stock</Label>
+                            <div className="col-span-3">{viewingItem.stock}</div>
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }

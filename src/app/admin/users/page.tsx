@@ -28,6 +28,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -63,6 +64,7 @@ import { getUsers, createUser, updateUser, deleteUser } from './actions';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 
 const userRoles = [
   'System Admin',
@@ -105,6 +107,7 @@ export default function UserManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createUser, null);
@@ -167,6 +170,11 @@ export default function UserManagementPage() {
    useEffect(() => {
      handleActionState(deleteState, 'User deleted successfully.', () => setIsDeleteDialogOpen(false));
    }, [deleteState]);
+
+  const handleViewClick = (user: User) => {
+    setSelectedUser(user);
+    setIsViewDialogOpen(true);
+  };
 
   const handleEditClick = (user: User) => {
     setSelectedUser(user);
@@ -349,6 +357,11 @@ export default function UserManagementPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem
+                                onClick={() => handleViewClick(user)}
+                              >
+                                View
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleEditClick(user)}
                               >
@@ -370,6 +383,42 @@ export default function UserManagementPage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>View User</DialogTitle>
+            <DialogDescription>
+              Details for {selectedUser?.name || selectedUser?.email}.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="uid" className="text-right">User ID</Label>
+                <div id="uid" className="col-span-3 text-xs">{selectedUser.uid}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <div id="name" className="col-span-3">{selectedUser.name || '-'}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <div id="email" className="col-span-3">{selectedUser.email}</div>
+              </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">Role</Label>
+                <div id="role" className="col-span-3">{selectedUser.role || '-'}</div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="createdAt" className="text-right">Created At</Label>
+                <div id="createdAt" className="col-span-3">{new Date(selectedUser.createdAt).toLocaleString()}</div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

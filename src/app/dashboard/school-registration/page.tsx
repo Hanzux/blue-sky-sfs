@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,8 +36,10 @@ const districts = ["All", ...new Set(initialSchools.map(school => school.distric
 
 export default function SchoolRegistrationPage() {
   const [schools, setSchools] = useState<School[]>(initialSchools);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingSchool, setEditingSchool] = useState<School | undefined>(undefined);
+  const [viewingSchool, setViewingSchool] = useState<School | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
 
   const filteredSchools = useMemo(() => {
@@ -49,29 +52,34 @@ export default function SchoolRegistrationPage() {
   const handleAddSchool = (school: Omit<School, 'id'>) => {
     const newSchool = { ...school, id: (schools.length + 1).toString() };
     setSchools([...schools, newSchool]);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
   
   const handleUpdateSchool = (school: School) => {
     setSchools(schools.map(s => s.id === school.id ? school : s));
     setEditingSchool(undefined);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   }
 
   const handleDeleteSchool = (id: string) => {
     setSchools(schools.filter(school => school.id !== id));
   };
+  
+  const handleViewClick = (school: School) => {
+    setViewingSchool(school);
+    setIsViewDialogOpen(true);
+  }
 
   const handleEditClick = (school: School) => {
     setEditingSchool(school);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   }
 
-  const handleDialogClose = (open: boolean) => {
+  const handleFormDialogClose = (open: boolean) => {
     if (!open) {
       setEditingSchool(undefined);
     }
-    setIsDialogOpen(open);
+    setIsFormDialogOpen(open);
   }
 
   return (
@@ -83,7 +91,7 @@ export default function SchoolRegistrationPage() {
                     <CardTitle>School Registration</CardTitle>
                     <CardDescription>Manage and register new schools into the system.</CardDescription>
                 </div>
-                <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
+                <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
                     <DialogTrigger asChild>
                         <Button>
                             <PlusCircle className="mr-2" />
@@ -143,8 +151,9 @@ export default function SchoolRegistrationPage() {
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditClick(school)}>Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteSchool(school.id)}>Delete</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewClick(school)}>View</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditClick(school)}>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteSchool(school.id)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -155,6 +164,32 @@ export default function SchoolRegistrationPage() {
             </div>
         </CardContent>
         </Card>
+
+        {/* View Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>View School</DialogTitle>
+                    <DialogDescription>Details for {viewingSchool?.name}.</DialogDescription>
+                </DialogHeader>
+                {viewingSchool && (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Name</Label>
+                            <div className="col-span-3">{viewingSchool.name}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">District</Label>
+                            <div className="col-span-3">{viewingSchool.district}</div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Learners</Label>
+                            <div className="col-span-3">{viewingSchool.learners}</div>
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
