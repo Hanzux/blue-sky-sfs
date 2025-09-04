@@ -1,5 +1,6 @@
+
 'use client';
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -100,6 +102,8 @@ type User = {
   role?: string;
 };
 
+const ITEMS_PER_PAGE = 5;
+
 export default function UserManagementPage() {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
@@ -109,6 +113,7 @@ export default function UserManagementPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createUser, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateUser, null);
@@ -190,6 +195,14 @@ export default function UserManagementPage() {
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
   };
+  
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return users.slice(startIndex, endIndex);
+  }, [users, currentPage]);
+
+  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
 
   return (
     <div className="flex justify-center p-4 sm:p-6">
@@ -330,7 +343,7 @@ export default function UserManagementPage() {
                         </TableCell>
                       </TableRow>
                     ))
-                  : users.map((user) => (
+                  : paginatedUsers.map((user) => (
                       <TableRow key={user.uid}>
                         <TableCell>{user.name || '-'}</TableCell>
                         <TableCell>{user.email}</TableCell>
@@ -382,6 +395,29 @@ export default function UserManagementPage() {
             </Table>
           </div>
         </CardContent>
+        <CardFooter className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
       </Card>
       
       {/* View Dialog */}
@@ -492,3 +528,5 @@ export default function UserManagementPage() {
     </div>
   );
 }
+
+    

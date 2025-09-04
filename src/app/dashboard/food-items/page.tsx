@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { FoodItemForm } from '@/components/food-item-form';
 import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
@@ -33,6 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
+const ITEMS_PER_PAGE = 5;
 
 export default function FoodItemsPage() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>(initialFoodItems);
@@ -42,6 +43,7 @@ export default function FoodItemsPage() {
   const [viewingItem, setViewingItem] = useState<FoodItem | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -57,6 +59,18 @@ export default function FoodItemsPage() {
       return districtMatch && schoolMatch;
     });
   }, [foodItems, filterDistrict, filterSchool]);
+
+  const paginatedFoodItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredFoodItems.slice(startIndex, endIndex);
+  }, [filteredFoodItems, currentPage]);
+
+  const totalPages = Math.ceil(filteredFoodItems.length / ITEMS_PER_PAGE);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterDistrict, filterSchool]);
 
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
@@ -165,7 +179,7 @@ export default function FoodItemsPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredFoodItems.map((item) => (
+                    {paginatedFoodItems.map((item) => (
                     <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
@@ -194,6 +208,29 @@ export default function FoodItemsPage() {
                 </Table>
             </div>
         </CardContent>
+        <CardFooter className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
         
         {/* View Dialog */}
@@ -236,3 +273,5 @@ export default function FoodItemsPage() {
     </div>
   );
 }
+
+    

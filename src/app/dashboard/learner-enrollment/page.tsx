@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
@@ -35,6 +35,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
+const ITEMS_PER_PAGE = 5;
 
 export default function LearnerEnrollmentPage() {
   const [learners, setLearners] = useState<Learner[]>(initialLearners);
@@ -44,6 +45,7 @@ export default function LearnerEnrollmentPage() {
   const [viewingLearner, setViewingLearner] = useState<Learner | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -60,6 +62,18 @@ export default function LearnerEnrollmentPage() {
     });
   }, [learners, filterDistrict, filterSchool]);
   
+  const paginatedLearners = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredLearners.slice(startIndex, endIndex);
+  }, [filteredLearners, currentPage]);
+
+  const totalPages = Math.ceil(filteredLearners.length / ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterDistrict, filterSchool]);
+
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
     setFilterSchool('All');
@@ -167,7 +181,7 @@ export default function LearnerEnrollmentPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredLearners.map((learner) => (
+                    {paginatedLearners.map((learner) => (
                     <TableRow key={learner.id}>
                         <TableCell className="font-medium">{learner.name}</TableCell>
                         <TableCell>{learner.gender}</TableCell>
@@ -196,6 +210,29 @@ export default function LearnerEnrollmentPage() {
                 </Table>
             </div>
         </CardContent>
+        <CardFooter className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
 
         {/* View Dialog */}
@@ -296,3 +333,5 @@ export default function LearnerEnrollmentPage() {
     </div>
   );
 }
+
+    

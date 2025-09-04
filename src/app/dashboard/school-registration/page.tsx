@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { SchoolForm } from '@/components/school-form';
 import { initialSchools, type School } from '@/lib/data';
@@ -33,6 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
+const ITEMS_PER_PAGE = 5;
 
 export default function SchoolRegistrationPage() {
   const [schools, setSchools] = useState<School[]>(initialSchools);
@@ -41,6 +42,7 @@ export default function SchoolRegistrationPage() {
   const [editingSchool, setEditingSchool] = useState<School | undefined>(undefined);
   const [viewingSchool, setViewingSchool] = useState<School | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -48,6 +50,18 @@ export default function SchoolRegistrationPage() {
     }
     return schools.filter(school => school.district === filterDistrict);
   }, [schools, filterDistrict]);
+
+  const paginatedSchools = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredSchools.slice(startIndex, endIndex);
+  }, [filteredSchools, currentPage]);
+
+  const totalPages = Math.ceil(filteredSchools.length / ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterDistrict]);
 
   const handleAddSchool = (school: Omit<School, 'id'>) => {
     const newSchool = { ...school, id: (schools.length + 1).toString() };
@@ -137,7 +151,7 @@ export default function SchoolRegistrationPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredSchools.map((school) => (
+                    {paginatedSchools.map((school) => (
                     <TableRow key={school.id}>
                         <TableCell className="font-medium">{school.name}</TableCell>
                         <TableCell className="hidden sm:table-cell">{school.district}</TableCell>
@@ -163,6 +177,29 @@ export default function SchoolRegistrationPage() {
                 </Table>
             </div>
         </CardContent>
+         <CardFooter className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
 
         {/* View Dialog */}
@@ -193,3 +230,5 @@ export default function SchoolRegistrationPage() {
     </div>
   );
 }
+
+    

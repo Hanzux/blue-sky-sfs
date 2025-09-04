@@ -1,5 +1,6 @@
+
 'use client';
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -56,6 +58,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getCaregivers, createCaregiver, updateCaregiver, deleteCaregiver } from './actions';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 
 const caregiverSchema = z.object({
   id: z.string().optional(),
@@ -72,6 +75,8 @@ type Caregiver = {
   phone: string;
 };
 
+const ITEMS_PER_PAGE = 5;
+
 export default function CaregiverManagementPage() {
   const { toast } = useToast();
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
@@ -80,6 +85,7 @@ export default function CaregiverManagementPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateCaregiver, null);
@@ -167,6 +173,13 @@ export default function CaregiverManagementPage() {
   const formAction = selectedCaregiver ? updateFormAction : createFormAction;
   const isPending = selectedCaregiver ? isUpdatePending : isCreatePending;
 
+  const paginatedCaregivers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return caregivers.slice(startIndex, endIndex);
+  }, [caregivers, currentPage]);
+
+  const totalPages = Math.ceil(caregivers.length / ITEMS_PER_PAGE);
 
   return (
     <div className="flex justify-center p-4 sm:p-6">
@@ -277,7 +290,7 @@ export default function CaregiverManagementPage() {
                         </TableCell>
                       </TableRow>
                     ))
-                  : caregivers.map((caregiver) => (
+                  : paginatedCaregivers.map((caregiver) => (
                       <TableRow key={caregiver.id}>
                         <TableCell>{caregiver.name || '-'}</TableCell>
                         <TableCell>{caregiver.email}</TableCell>
@@ -320,6 +333,29 @@ export default function CaregiverManagementPage() {
             </Table>
           </div>
         </CardContent>
+        <CardFooter className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </CardFooter>
       </Card>
 
        {/* View Dialog */}
@@ -377,3 +413,5 @@ export default function CaregiverManagementPage() {
     </div>
   );
 }
+
+    
