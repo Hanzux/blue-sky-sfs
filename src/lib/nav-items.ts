@@ -9,7 +9,7 @@ export const navItems = [
     { href: '/dashboard/meal-recording', icon: Soup, label: 'Meal Recording' },
     { href: '/dashboard/reporting', icon: BarChart3, label: 'Reporting' },
     { href: '/dashboard/food-items', icon: Package, label: 'Food Items' },
-    { href: '/#', icon: Warehouse, label: 'Stock Tracking' },
+    { href: '/dashboard/stock-tracking', icon: Warehouse, label: 'Stock Tracking' },
   ];
 
 export const adminNavItems = [
