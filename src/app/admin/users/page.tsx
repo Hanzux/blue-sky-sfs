@@ -1,5 +1,5 @@
 'use client';
-import { useFormState } from 'react-dom';
+import { useActionState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,18 +12,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
 import { createUser } from './actions';
 
 const createUserSchema = z.object({
@@ -38,7 +35,7 @@ type CreateUserForm = z.infer<typeof createUserSchema>;
 
 export default function UserManagementPage() {
   const { toast } = useToast();
-  const [state, formAction] = useFormState(createUser, null);
+  const [state, formAction] = useActionState(createUser, null);
 
   const form = useForm<CreateUserForm>({
     resolver: zodResolver(createUserSchema),
