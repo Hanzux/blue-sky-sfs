@@ -1,5 +1,10 @@
 'use server';
 import * as admin from 'firebase-admin';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config({ path: '.env' });
+
 
 export async function getAdminAuth() {
     const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
