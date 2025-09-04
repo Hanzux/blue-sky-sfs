@@ -7,22 +7,22 @@ export type School = {
 };
 
 export const initialSchools: School[] = [
-    { id: '1', name: 'Dotito Prim', district: 'Mt Darwin', learners: 100 },
-    { id: '2', name: 'Kadohwata', district: 'Mt Darwin', learners: 100 },
-    { id: '3', name: 'Chiutsa pri', district: 'Mt Darwin', learners: 100 },
-    { id: '4', name: 'Pachanza', district: 'Mt Darwin', learners: 100 },
-    { id: '5', name: 'Kajoto Prin', district: 'Mt Darwin', learners: 100 },
-    { id: '6', name: 'Kazai prim', district: 'Mt Darwin', learners: 100 },
-    { id: '7', name: 'Chiromo p', district: 'Mt Darwin', learners: 100 },
-    { id: '8', name: 'Kanyoka pr', district: 'Mt Darwin', learners: 100 },
-    { id: '9', name: 'Mahuhwe', district: 'Mbire', learners: 100 },
-    { id: '10', name: 'Sangojena', district: 'Mbire', learners: 100 },
-    { id: '11', name: 'Bande Prin', district: 'Mbire', learners: 100 },
-    { id: '12', name: 'Kasuwo Pr', district: 'Mbire', learners: 100 },
-    { id: '13', name: 'Hambe Pri', district: 'Mbire', learners: 100 },
-    { id: '14', name: 'Nyarutomb', district: 'Mbire', learners: 100 },
-    { id: '15', name: 'Masomo P', district: 'Mbire', learners: 100 },
-    { id: '16', name: 'Nyambudz', district: 'Mbire', learners: 100 },
+    { id: '1', name: 'Dotito Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '2', name: 'Kadohwata Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '3', name: 'Chiutsa primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '4', name: 'Pachanza Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '5', name: 'Kajoto Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '6', name: 'Kazai primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '7', name: 'Chiromo primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '8', name: 'Kanyoka primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '9', name: 'Mahuhwe Primary School', district: 'Mbire', learners: 100 },
+    { id: '10', name: 'Sangojena Primary School', district: 'Mbire', learners: 100 },
+    { id: '11', name: 'Bande Primary School', district: 'Mbire', learners: 100 },
+    { id: '12', name: 'Kasuwo Primary School', district: 'Mbire', learners: 100 },
+    { id: '13', name: 'Hambe Primary School', district: 'Mbire', learners: 100 },
+    { id: '14', name: 'Nyarutombo primary school', district: 'Mbire', learners: 100 },
+    { id: '15', name: 'Masomo Primary School', district: 'Mbire', learners: 100 },
+    { id: '16', name: 'Nyambudzi Primary School', district: 'Mbire', learners: 100 },
 ];
 
 export type Learner = {
