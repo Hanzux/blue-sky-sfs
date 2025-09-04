@@ -65,13 +65,8 @@ export default function UserManagementPage() {
   }, [state, toast, form]);
 
   return (
-    <div className="p-4 sm:p-6">
-       <div className="flex items-center mb-4">
-          <h1 className="text-lg font-semibold md:text-2xl font-headline">
-            User Management
-          </h1>
-        </div>
-      <Card className="w-full max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 flex justify-center">
+      <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>Create Admin User</CardTitle>
           <CardDescription>

@@ -1,4 +1,5 @@
 
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function FoodItemsPage() {
@@ -10,7 +11,6 @@ export default function FoodItemsPage() {
       </CardHeader>
       <CardContent>
         <p>Food items management functionality will be implemented here.</p>
-      </CardContent>
-    </Card>
+      </C>
   );
 }

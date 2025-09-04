@@ -1,6 +1,9 @@
 
-import { Dashboard } from '@/components/dashboard';
+
+'use client';
+
+import { ReportingTool } from '@/components/reporting-tool';
 
 export default function ReportingPage() {
-  return <Dashboard />;
+  return <ReportingTool />;
 }
