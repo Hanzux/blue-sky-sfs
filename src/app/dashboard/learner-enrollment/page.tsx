@@ -31,6 +31,8 @@ import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
@@ -198,36 +200,90 @@ export default function LearnerEnrollmentPage() {
 
         {/* View Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>View Learner</DialogTitle>
                     <DialogDescription>Details for {viewingLearner?.name}.</DialogDescription>
                 </DialogHeader>
                 {viewingLearner && (
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">Name</Label>
-                            <div className="col-span-3">{viewingLearner.name}</div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">Date of Birth</Label>
-                            <div className="col-span-3">{viewingLearner.dob}</div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">District</Label>
-                            <div className="col-span-3">{viewingLearner.district}</div>
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">School</Label>
-                            <div className="col-span-3">{viewingLearner.school}</div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">Class</Label>
-                            <div className="col-span-3">{viewingLearner.className}</div>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right">Guardian</Label>
-                            <div className="col-span-3">{viewingLearner.guardian}</div>
+                    <div className="grid gap-6 py-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg">Learner Details</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Name</Label>
+                                    <div>{viewingLearner.name}</div>
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Date of Birth</Label>
+                                    <div>{viewingLearner.dob}</div>
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">District</Label>
+                                    <div>{viewingLearner.district}</div>
+                                </div>
+                                 <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">School</Label>
+                                    <div>{viewingLearner.school}</div>
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Class</Label>
+                                    <div>{viewingLearner.className}</div>
+                                </div>
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Guardian</Label>
+                                    <div>{viewingLearner.guardian}</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        
+                        <Separator />
+
+                        <div className="grid gap-4 md:grid-cols-2">
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Attendance Metrics</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label className="text-muted-foreground">School Attendance Rate</Label>
+                                        <Progress value={92} className="h-2 mt-1" />
+                                        <p className="text-sm text-right font-medium">92%</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground">Class Attendance Rate</Label>
+                                        <Progress value={95} className="h-2 mt-1" />
+                                         <p className="text-sm text-right font-medium">95%</p>
+                                    </div>
+                                    <div className="text-sm space-y-1">
+                                        <p><strong>Days Present:</strong> 46</p>
+                                        <p><strong>Days Absent:</strong> 3</p>
+                                        <p><strong>Days Excused:</strong> 1</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg">Feeding Metrics</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label className="text-muted-foreground">Overall Feed Rate</Label>
+                                        <Progress value={98} className="h-2 mt-1" />
+                                        <p className="text-sm text-right font-medium">98%</p>
+                                    </div>
+                                    <div className="text-sm space-y-1">
+                                        <p><strong>Meals Served:</strong></p>
+                                        <ul className="list-disc pl-5">
+                                            <li>Breakfast: 48</li>
+                                            <li>Lunch: 49</li>
+                                        </ul>
+                                        <p><strong>Meals Missed:</strong> 1 (Lunch)</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 )}
