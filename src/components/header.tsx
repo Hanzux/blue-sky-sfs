@@ -5,19 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Bell,
-  Home,
-  Users,
-  CalendarCheck,
-  Soup,
-  BarChart3,
-  Package,
-  Warehouse,
-  Shield,
-  CircleUser,
   Menu,
+  Search,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -31,6 +22,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { navItems, adminNavItems } from '@/lib/nav-items';
+import { Input } from '@/components/ui/input';
 
 export function Header() {
     const pathname = usePathname();
@@ -67,7 +59,6 @@ export function Header() {
                     )}
                     >
                     {item.label}
-                    {item.badge && <Badge variant="secondary" className="ml-2 bg-accent/20 text-accent">{item.badge}</Badge>}
                     </Link>
                 ))}
                 <div className="border-t pt-4">
@@ -96,7 +87,16 @@ export function Header() {
             </div>
 
             <div className="ml-auto flex-1 sm:flex-initial">
-                {/* Optional Search */}
+              <form>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                  />
+                </div>
+              </form>
             </div>
              <Button variant="ghost" size="icon" className="h-8 w-8">
               <Bell className="h-4 w-4" />
@@ -127,4 +127,3 @@ export function Header() {
     </header>
     )
 }
-
