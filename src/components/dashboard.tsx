@@ -107,7 +107,7 @@ export function Dashboard() {
                         <div className="flex items-center">
                             <TabsList className='hidden md:inline-flex'>
                                 {navItems.map(item => (
-                                    <TabsTrigger key={item.href} value={item.href} asChild>
+                                    <TabsTrigger key={item.label} value={item.href} asChild>
                                         <Link href={item.href}>{item.label}</Link>
                                     </TabsTrigger>
                                 ))}
@@ -135,4 +135,3 @@ export function Dashboard() {
       </div>
   );
 }
-
