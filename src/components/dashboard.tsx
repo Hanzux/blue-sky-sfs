@@ -2,17 +2,22 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import {
   Users,
   CalendarCheck,
   Soup,
   Warehouse,
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/header';
 import { ReportingTool } from '@/components/reporting-tool';
 import AdminUsersPage from '@/app/admin/users/page';
-
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { navItems, adminNavItems } from '@/lib/nav-items';
+import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Button } from './ui/button';
 
 export function Dashboard() {
   const pathname = usePathname();
@@ -22,11 +27,6 @@ export function Dashboard() {
       case '/dashboard':
         return (
           <>
-            <div className="flex items-center">
-              <h1 className="text-lg font-semibold md:text-2xl font-headline">
-                Dashboard
-              </h1>
-            </div>
             <div
               className="grid flex-1 items-start gap-4 lg:gap-6"
             >
@@ -76,32 +76,63 @@ export function Dashboard() {
           </>
         );
       case '/dashboard/reporting':
-        return (
-          <>
-            <div className="flex items-center">
-                <h1 className="text-lg font-semibold md:text-2xl font-headline">
-                    Reporting
-                </h1>
-            </div>
-            <ReportingTool />
-          </>
-        );
-        case '/admin/users':
-            return (
-                <AdminUsersPage />
-            )
+        return <ReportingTool />;
+      case '/admin/users':
+        return <AdminUsersPage />;
       default:
-        return null;
+        // You can decide what to render for other routes, e.g., a "Not Found" message
+        // For now, we'll check if it's one of the placeholder routes.
+        if (navItems.some(item => item.href === pathname && item.href !== '#')) {
+            return <div>This is the page for {pathname}</div>;
+        }
+        return <p>Page not found or not yet implemented.</p>;
     }
   };
+  
+  const getActiveTab = () => {
+    if (pathname.startsWith('/admin')) {
+        return 'admin';
+    }
+    return pathname;
+  }
 
 
   return (
       <div className="flex min-h-screen w-full flex-col">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            {renderContent()}
-        </main>
+        <div className='flex flex-col sm:gap-4 sm:py-4 sm:pl-14'>
+            <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+                <div className='mb-4'>
+                    <Tabs value={getActiveTab()} className="w-full">
+                        <div className="flex items-center">
+                            <TabsList className='hidden md:inline-flex'>
+                                {navItems.map(item => (
+                                    <TabsTrigger key={item.href} value={item.href} asChild>
+                                        <Link href={item.href}>{item.label}</Link>
+                                    </TabsTrigger>
+                                ))}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <TabsTrigger value="admin" className={cn(pathname.startsWith('/admin') && 'bg-background text-foreground shadow-sm')}>System Admin</TabsTrigger>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start">
+                                        {adminNavItems.map(item => (
+                                            <DropdownMenuItem key={item.label} asChild>
+                                                <Link href={item.href}>
+                                                    {item.label}
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TabsList>
+                        </div>
+                    </Tabs>
+                </div>
+                {renderContent()}
+            </main>
+        </div>
       </div>
   );
 }
+
