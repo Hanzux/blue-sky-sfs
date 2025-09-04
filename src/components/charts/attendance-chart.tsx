@@ -9,16 +9,6 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 
-const chartData = [
-    { day: 'Mon', rate: 88.2 },
-    { day: 'Tue', rate: 91.5 },
-    { day: 'Wed', rate: 93.1 },
-    { day: 'Thu', rate: 90.3 },
-    { day: 'Fri', rate: 94.6 },
-    { day: 'Sat', rate: 92.8 },
-    { day: 'Sun', rate: 89.9 },
-];
-
 const chartConfig = {
     rate: {
         label: 'Attendance Rate',
@@ -26,12 +16,16 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-export function AttendanceChart() {
+type AttendanceChartProps = {
+    data: { day: string; rate: number }[];
+};
+
+export function AttendanceChart({ data }: AttendanceChartProps) {
     return (
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart
-                    data={chartData}
+                    data={data}
                     margin={{
                         top: 5,
                         right: 20,

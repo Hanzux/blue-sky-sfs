@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Pie, PieChart, ResponsiveContainer } from 'recharts';
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -10,11 +10,6 @@ import {
   ChartLegendContent,
   ChartTooltip,
 } from '@/components/ui/chart';
-
-const chartData = [
-  { meal: 'Breakfast', servings: 1250, fill: 'var(--color-breakfast)' },
-  { meal: 'Lunch', servings: 1181, fill: 'var(--color-lunch)' },
-];
 
 const chartConfig = {
   servings: {
@@ -30,7 +25,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MealsChart() {
+type MealsChartProps = {
+    data: { meal: string; servings: number; fill: string }[];
+};
+
+export function MealsChart({ data }: MealsChartProps) {
   return (
     <ChartContainer
       config={chartConfig}
@@ -43,7 +42,7 @@ export function MealsChart() {
             content={<ChartTooltipContent hideLabel />}
           />
           <Pie
-            data={chartData}
+            data={data}
             dataKey="servings"
             nameKey="meal"
             innerRadius={60}

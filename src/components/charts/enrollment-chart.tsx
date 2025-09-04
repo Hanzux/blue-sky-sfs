@@ -9,15 +9,6 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 
-const chartData = [
-  { month: 'January', learners: 186 },
-  { month: 'February', learners: 305 },
-  { month: 'March', learners: 237 },
-  { month: 'April', learners: 173 },
-  { month: 'May', learners: 209 },
-  { month: 'June', learners: 214 },
-];
-
 const chartConfig = {
   learners: {
     label: 'Learners',
@@ -25,11 +16,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EnrollmentChart() {
+type EnrollmentChartProps = {
+    data: { month: string; learners: number }[];
+};
+
+export function EnrollmentChart({ data }: EnrollmentChartProps) {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 20, right: 20, left: -10, bottom: 0 }}>
           <XAxis
             dataKey="month"
             tickLine={false}

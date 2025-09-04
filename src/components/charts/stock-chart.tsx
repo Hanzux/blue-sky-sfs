@@ -9,14 +9,6 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 
-const chartData = [
-  { item: 'Maize', stock: 150 },
-  { item: 'Beans', stock: 80 },
-  { item: 'Oil', stock: 50 },
-  { item: 'Salt', stock: 25 },
-  { item: 'Sugar', stock: 100 },
-];
-
 const chartConfig = {
   stock: {
     label: 'Stock (kg)',
@@ -24,12 +16,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function StockChart() {
+type StockChartProps = {
+    data: { item: string; stock: number }[];
+};
+
+export function StockChart({ data }: StockChartProps) {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart
-          data={chartData}
+          data={data.map(d => ({...d, item: d.name}))}
           layout="vertical"
           margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
         >

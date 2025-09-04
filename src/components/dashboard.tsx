@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useMemo } from 'react';
 import {
   Users,
   CalendarCheck,
@@ -21,10 +22,88 @@ import {
   MealsChart,
   StockChart,
 } from '@/components/charts';
+import { initialSchools, initialLearners, initialFoodItems } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
+
+const enrollmentData = [
+  { month: 'January', learners: 186 },
+  { month: 'February', learners: 305 },
+  { month: 'March', learners: 237 },
+  { month: 'April', learners: 173 },
+  { month: 'May', learners: 209 },
+  { month: 'June', learners: 214 },
+];
+
+const attendanceData = [
+    { day: 'Mon', rate: 88.2 },
+    { day: 'Tue', rate: 91.5 },
+    { day: 'Wed', rate: 93.1 },
+    { day: 'Thu', rate: 90.3 },
+    { day: 'Fri', rate: 94.6 },
+    { day: 'Sat', rate: 92.8 },
+    { day: 'Sun', rate: 89.9 },
+];
+
+const mealsData = [
+    { meal: 'Breakfast', servings: 1250, fill: 'var(--color-breakfast)' },
+    { meal: 'Lunch', servings: 1181, fill: 'var(--color-lunch)' },
+];
 
 export function Dashboard() {
+  const [filterDistrict, setFilterDistrict] = useState<string>('All');
+  const [filterSchool, setFilterSchool] = useState<string>('All');
+
+  const availableSchools = useMemo(() => {
+    if (filterDistrict === 'All') {
+      return ["All", ...initialSchools.map(s => s.name)];
+    }
+    const schoolsInDistrict = initialSchools.filter(s => s.district === filterDistrict).map(s => s.name);
+    setFilterSchool(schoolsInDistrict[0] || 'All');
+    return ["All", ...schoolsInDistrict];
+  }, [filterDistrict]);
+
+  const handleDistrictChange = (district: string) => {
+    setFilterDistrict(district);
+    setFilterSchool('All');
+  }
+
+  const stockData = useMemo(() => {
+    return initialFoodItems.filter(item => {
+        const districtMatch = filterDistrict === 'All' || item.district === filterDistrict;
+        const schoolMatch = filterSchool === 'All' || item.school === filterSchool;
+        return districtMatch && schoolMatch;
+    });
+  }, [filterDistrict, filterSchool]);
+
   return (
     <div className="grid flex-1 items-start gap-4 lg:gap-6">
+        <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label>District</Label>
+              <Select value={filterDistrict} onValueChange={handleDistrictChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select District" />
+                </SelectTrigger>
+                <SelectContent>
+                  {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>School</Label>
+              <Select value={filterSchool} onValueChange={setFilterSchool}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select School" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSchools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+        </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -89,7 +168,7 @@ export function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            <EnrollmentChart />
+            <EnrollmentChart data={enrollmentData} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
@@ -100,7 +179,7 @@ export function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AttendanceChart />
+            <AttendanceChart data={attendanceData} />
           </CardContent>
         </Card>
       </div>
@@ -114,7 +193,7 @@ export function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <MealsChart />
+            <MealsChart data={mealsData}/>
           </CardContent>
         </Card>
         <Card className="lg:col-span-4">
@@ -125,7 +204,7 @@ export function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <StockChart />
+            <StockChart data={stockData} />
           </CardContent>
         </Card>
       </div>
