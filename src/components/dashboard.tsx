@@ -1,65 +1,18 @@
 
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Bell,
-  Home,
   Users,
   CalendarCheck,
   Soup,
-  BarChart3,
-  Package,
   Warehouse,
-  Settings,
-  CircleUser,
-  Shield,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarInset,
-  SidebarTrigger,
-  SidebarSeparator,
-  SidebarGroup,
-  SidebarGroupLabel,
-} from '@/components/ui/sidebar';
-import { Logo } from '@/components/logo';
+import { Header } from '@/components/header';
 import { ReportingTool } from '@/components/reporting-tool';
 import AdminUsersPage from '@/app/admin/users/page';
 
-const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '#', icon: Users, label: 'Learner Enrollment' },
-  { href: '#', icon: CalendarCheck, label: 'Daily Attendance' },
-  { href: '#', icon: Soup, label: 'Meal Recording' },
-  { href: '/dashboard/reporting', icon: BarChart3, label: 'Reporting', badge: 'AI' },
-  { href: '#', icon: Package, label: 'Food Items' },
-  { href: '#', icon: Warehouse, label: 'Stock Tracking', alert: 3 },
-];
-
-const adminNavItems = [
-    { href: '/admin/users', icon: Users, label: 'User Management' },
-]
 
 export function Dashboard() {
   const pathname = usePathname();
@@ -144,133 +97,11 @@ export function Dashboard() {
 
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen w-full">
-        <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <Logo className="h-8 w-8" />
-              <h2 className="text-lg font-semibold font-headline text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-                Blue Sky
-              </h2>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.label}
-                  >
-                    <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.label}</span>
-                      {item.badge && (
-                        <Badge variant="secondary" className="ml-auto group-data-[collapsible=icon]:hidden bg-accent/20 text-accent">
-                          {item.badge}
-                        </Badge>
-                      )}
-                      {item.alert && (
-                        <Badge variant="destructive" className="ml-auto group-data-[collapsible=icon]:hidden">
-                          {item.alert}
-                        </Badge>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-            <SidebarSeparator />
-             <SidebarGroup>
-                <SidebarGroupLabel className="flex items-center gap-2">
-                    <Shield />
-                    System Admin
-                </SidebarGroupLabel>
-                <SidebarMenu>
-                     {adminNavItems.map((item) => (
-                        <SidebarMenuItem key={item.label}>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={pathname === item.href}
-                                tooltip={item.label}
-                            >
-                                <Link href={item.href}>
-                                    <item.icon />
-                                    <span>{item.label}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter>
-             <SidebarMenu>
-                <SidebarMenuItem>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="w-full justify-start gap-2 p-2 h-12 text-left group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                                 <Avatar className="h-8 w-8">
-                                    <AvatarImage src="https://picsum.photos/100/100" data-ai-hint="person face" />
-                                    <AvatarFallback>SH</AvatarFallback>
-                                 </Avatar>
-                                 <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                                     <span className="text-sm font-medium">S. Headmaster</span>
-                                     <span className="text-xs text-sidebar-foreground/70">head@school.org</span>
-                                 </div>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent side="right" align="start">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Profile</DropdownMenuItem>
-                            <DropdownMenuItem>Settings</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuItem asChild>
-                               <Link href="/">Logout</Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </SidebarMenuItem>
-             </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="w-full flex-1">
-              {/* Optional: Add search bar here */}
-            </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                  <CircleUser className="h-5 w-5" />
-                  <span className="sr-only">Toggle user menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href="/">Logout</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-             {renderContent()}
-          </main>
-        </SidebarInset>
+      <div className="flex min-h-screen w-full flex-col">
+        <Header />
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+            {renderContent()}
+        </main>
       </div>
-    </SidebarProvider>
   );
 }
