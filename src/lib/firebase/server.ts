@@ -1,7 +1,7 @@
 'use server';
 import * as admin from 'firebase-admin';
 
-function getAdminAuth() {
+export async function getAdminAuth() {
     const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
     if (serviceAccount) {
@@ -21,5 +21,3 @@ function getAdminAuth() {
         return null;
     }
 }
-
-export const adminAuth = getAdminAuth();

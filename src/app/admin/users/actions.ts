@@ -1,6 +1,6 @@
 'use server';
 
-import { adminAuth } from '@/lib/firebase/server';
+import { getAdminAuth } from '@/lib/firebase/server';
 import { z } from 'zod';
 
 const createUserSchema = z.object({
@@ -10,6 +10,7 @@ const createUserSchema = z.object({
 });
 
 export async function createUser(prevState: any, formData: FormData) {
+  const adminAuth = await getAdminAuth();
   if (!adminAuth) {
     return {
       type: 'error',
