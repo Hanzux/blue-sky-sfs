@@ -118,7 +118,7 @@ export function Dashboard() {
             <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
                 <div className='mb-4'>
                     <Tabs value={getActiveTab()} className="w-full">
-                        <div className="flex items-center">
+                        <div className="flex justify-center">
                             <TabsList className='hidden md:inline-flex'>
                                 {navItems.map(item => (
                                     <TabsTrigger key={item.label} value={item.href} asChild>
