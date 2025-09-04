@@ -12,6 +12,7 @@ import {
   Warehouse,
   Settings,
   CircleUser,
+  Shield,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -36,12 +37,15 @@ import {
   SidebarFooter,
   SidebarInset,
   SidebarTrigger,
+  SidebarSeparator,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/logo';
 import { ReportingTool } from '@/components/reporting-tool';
 
 const navItems = [
-  { href: '#', icon: Home, label: 'Dashboard' },
+  { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '#', icon: Users, label: 'Learner Enrollment' },
   { href: '#', icon: CalendarCheck, label: 'Daily Attendance' },
   { href: '#', icon: Soup, label: 'Meal Recording' },
@@ -49,6 +53,10 @@ const navItems = [
   { href: '#', icon: Package, label: 'Food Items' },
   { href: '#', icon: Warehouse, label: 'Stock Tracking', alert: 3 },
 ];
+
+const adminNavItems = [
+    { href: '/admin/users', icon: Users, label: 'User Management' },
+]
 
 export function Dashboard() {
   return (
@@ -69,7 +77,7 @@ export function Dashboard() {
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     asChild
-                    isActive={item.label === 'Dashboard'}
+                    isActive={item.label === 'Dashboard' && item.href === '/dashboard'}
                     tooltip={item.label}
                   >
                     <Link href={item.href}>
@@ -90,6 +98,28 @@ export function Dashboard() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+            <SidebarSeparator />
+             <SidebarGroup>
+                <SidebarGroupLabel className="flex items-center gap-2">
+                    <Shield />
+                    System Admin
+                </SidebarGroupLabel>
+                <SidebarMenu>
+                     {adminNavItems.map((item) => (
+                        <SidebarMenuItem key={item.label}>
+                            <SidebarMenuButton
+                                asChild
+                                tooltip={item.label}
+                            >
+                                <Link href={item.href}>
+                                    <item.icon />
+                                    <span>{item.label}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </SidebarGroup>
           </SidebarContent>
           <SidebarFooter>
              <SidebarMenu>
