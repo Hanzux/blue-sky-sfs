@@ -5,5 +5,9 @@
 import { ReportingTool } from '@/components/reporting-tool';
 
 export default function ReportingPage() {
-  return <ReportingTool />;
+  return (
+    <div className="flex justify-center">
+      <ReportingTool />
+    </div>
+  );
 }

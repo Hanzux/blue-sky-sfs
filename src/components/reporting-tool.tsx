@@ -32,7 +32,7 @@ export function ReportingTool() {
       if (!date?.from || !date?.to) {
         throw new Error('Please select a valid date range.');
       }
-      const summary = await generateReportsummary({
+      const summary = await generateReportSummary({
         reportData: 'Sample report data including learner attendance and meals served.',
         reportType: 'Termly',
         dateRange: `${date.from.toDateString()} to ${date.to.toDateString()}`,
@@ -53,7 +53,7 @@ export function ReportingTool() {
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-4xl">
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle className="font-headline">Simplified Reporting Tool</CardTitle>
