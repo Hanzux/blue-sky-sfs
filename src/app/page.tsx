@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,7 +17,7 @@ import { Logo } from '@/components/logo';
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
             <Logo className="h-12 w-12" />

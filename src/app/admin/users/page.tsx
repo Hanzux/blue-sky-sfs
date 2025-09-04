@@ -1,3 +1,4 @@
+
 'use client';
 import { useActionState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -64,13 +65,13 @@ export default function UserManagementPage() {
   }, [state, toast, form]);
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-4 sm:p-6">
        <div className="flex items-center mb-4">
           <h1 className="text-lg font-semibold md:text-2xl font-headline">
             User Management
           </h1>
         </div>
-      <Card>
+      <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Create Admin User</CardTitle>
           <CardDescription>
@@ -79,7 +80,7 @@ export default function UserManagementPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form action={formAction} className="grid gap-4">
+            <form action={formAction} className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
@@ -110,7 +111,7 @@ export default function UserManagementPage() {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="md:col-span-2">
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input type="password" {...field} />
@@ -119,7 +120,7 @@ export default function UserManagementPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full md:col-span-2">
                 Create User
               </Button>
             </form>

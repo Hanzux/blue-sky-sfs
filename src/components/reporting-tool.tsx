@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -58,7 +59,7 @@ export function ReportingTool() {
           <CardTitle className="font-headline">Simplified Reporting Tool</CardTitle>
           <CardDescription>Generate a summary of key metrics over a selected date range.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6 sm:grid-cols-2">
+        <CardContent className="grid gap-6 md:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="date-range">Date Range</Label>
             <DateRangePicker date={date} onDateChange={setDate} />
