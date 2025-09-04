@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -28,11 +28,23 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { SchoolForm } from '@/components/school-form';
 import { initialSchools, type School } from '@/lib/data';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
 export default function SchoolRegistrationPage() {
   const [schools, setSchools] = useState<School[]>(initialSchools);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSchool, setEditingSchool] = useState<School | undefined>(undefined);
+  const [filterDistrict, setFilterDistrict] = useState<string>('All');
+
+  const filteredSchools = useMemo(() => {
+    if (filterDistrict === 'All') {
+      return schools;
+    }
+    return schools.filter(school => school.district === filterDistrict);
+  }, [schools, filterDistrict]);
 
   const handleAddSchool = (school: Omit<School, 'id'>) => {
     const newSchool = { ...school, id: (schools.length + 1).toString() };
@@ -89,6 +101,19 @@ export default function SchoolRegistrationPage() {
                     </DialogContent>
                 </Dialog>
             </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>District</Label>
+                  <Select value={filterDistrict} onValueChange={setFilterDistrict}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select District" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
             <div className="overflow-x-auto">
@@ -104,7 +129,7 @@ export default function SchoolRegistrationPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {schools.map((school) => (
+                    {filteredSchools.map((school) => (
                     <TableRow key={school.id}>
                         <TableCell className="font-medium">{school.name}</TableCell>
                         <TableCell className="hidden sm:table-cell">{school.district}</TableCell>
