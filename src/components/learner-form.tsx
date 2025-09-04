@@ -15,7 +15,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { initialSchools } from '@/lib/data';
+import { initialSchools, type Learner } from '@/lib/data';
+
 
 const learnerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -28,13 +29,6 @@ const learnerSchema = z.object({
 
 type LearnerFormValues = z.infer<typeof learnerSchema>;
 
-type Learner = {
-  id: string;
-  name: string;
-  dob: string;
-  className: string;
-  guardian: string;
-};
 
 type LearnerFormProps = {
   onSubmit: (data: any) => void;

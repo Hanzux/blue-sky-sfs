@@ -31,10 +31,12 @@ export type Learner = {
   dob: string;
   className: string;
   guardian: string;
+  district: string;
+  school: string;
 };
 
 export const initialLearners: Learner[] = [
-    { id: '1', name: 'John Doe', dob: '2015-03-12', className: 'Grade 1', guardian: 'Jane Doe' },
-    { id: '2', name: 'Alice Smith', dob: '2016-07-21', className: 'Kindergarten', guardian: 'Bob Smith' },
-    { id: '3', name: 'Michael Johnson', dob: '2014-11-02', className: 'Grade 2', guardian: 'Chris Johnson' },
+    { id: '1', name: 'John Doe', dob: '2015-03-12', className: 'Grade 1', guardian: 'Jane Doe', district: 'Mt Darwin', school: 'Dotito Primary School' },
+    { id: '2', name: 'Alice Smith', dob: '2016-07-21', className: 'Kindergarten', guardian: 'Bob Smith', district: 'Mbire', school: 'Mahuhwe Primary School' },
+    { id: '3', name: 'Michael Johnson', dob: '2014-11-02', className: 'Grade 2', guardian: 'Chris Johnson', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
 ];
