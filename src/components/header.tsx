@@ -1,8 +1,8 @@
 
 'use client';
-
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Bell,
   Menu,
@@ -26,6 +26,15 @@ import { Input } from '@/components/ui/input';
 
 export function Header() {
     const pathname = usePathname();
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        }
+    }
 
     return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
@@ -87,13 +96,15 @@ export function Header() {
             </div>
 
             <div className="ml-auto flex-1 sm:flex-initial">
-              <form>
+              <form onSubmit={handleSearchSubmit}>
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search..."
                     className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
               </form>

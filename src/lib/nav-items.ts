@@ -1,5 +1,5 @@
 
-import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School, Contact } from "lucide-react";
+import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School, Contact, Search } from "lucide-react";
 
 export const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
