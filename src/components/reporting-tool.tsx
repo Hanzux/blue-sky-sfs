@@ -32,7 +32,7 @@ export function ReportingTool() {
       if (!date?.from || !date?.to) {
         throw new Error('Please select a valid date range.');
       }
-      const summary = await generateReportSummary({
+      const summary = await generateReportsummary({
         reportData: 'Sample report data including learner attendance and meals served.',
         reportType: 'Termly',
         dateRange: `${date.from.toDateString()} to ${date.to.toDateString()}`,
@@ -62,7 +62,7 @@ export function ReportingTool() {
         <CardContent className="grid gap-6 md:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="date-range">Date Range</Label>
-            <DateRangePicker date={date} onDateChange={setDate} />
+            <DateRangePicker date={date} onDateChange={setDate} className="w-full" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="group-by">Group By</Label>
