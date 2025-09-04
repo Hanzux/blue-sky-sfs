@@ -64,73 +64,75 @@ export default function LearnerEnrollmentPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-            <div>
-                <CardTitle>Learner Enrollment</CardTitle>
-                <CardDescription>Manage and enroll new learners into the system.</CardDescription>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-                <DialogTrigger asChild>
-                    <Button>
-                        <PlusCircle className="mr-2" />
-                        New Learner
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{editingLearner ? 'Edit Learner' : 'Enroll New Learner'}</DialogTitle>
-                    </DialogHeader>
-                    <LearnerForm 
-                        onSubmit={editingLearner ? handleUpdateLearner : handleAddLearner} 
-                        learner={editingLearner}
-                    />
-                </DialogContent>
-            </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden sm:table-cell">Date of Birth</TableHead>
-                <TableHead className="hidden md:table-cell">Class</TableHead>
-                <TableHead className="hidden md:table-cell">Guardian</TableHead>
-                <TableHead>
-                    <span className="sr-only">Actions</span>
-                </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {learners.map((learner) => (
-                <TableRow key={learner.id}>
-                    <TableCell className="font-medium">{learner.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{learner.dob}</TableCell>
-                    <TableCell className="hidden md:table-cell">{learner.className}</TableCell>
-                    <TableCell className="hidden md:table-cell">{learner.guardian}</TableCell>
-                    <TableCell>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+    <div className="flex justify-center">
+        <Card className="w-full max-w-4xl">
+        <CardHeader>
+            <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle>Learner Enrollment</CardTitle>
+                    <CardDescription>Manage and enroll new learners into the system.</CardDescription>
+                </div>
+                <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <PlusCircle className="mr-2" />
+                            New Learner
                         </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditClick(learner)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteLearner(learner.id)}>Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    </TableCell>
-                </TableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </div>
-      </CardContent>
-    </Card>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{editingLearner ? 'Edit Learner' : 'Enroll New Learner'}</DialogTitle>
+                        </DialogHeader>
+                        <LearnerForm 
+                            onSubmit={editingLearner ? handleUpdateLearner : handleAddLearner} 
+                            learner={editingLearner}
+                        />
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <div className="overflow-x-auto">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">Date of Birth</TableHead>
+                    <TableHead className="hidden md:table-cell">Class</TableHead>
+                    <TableHead className="hidden md:table-cell">Guardian</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {learners.map((learner) => (
+                    <TableRow key={learner.id}>
+                        <TableCell className="font-medium">{learner.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{learner.dob}</TableCell>
+                        <TableCell className="hidden md:table-cell">{learner.className}</TableCell>
+                        <TableCell className="hidden md:table-cell">{learner.guardian}</TableCell>
+                        <TableCell>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditClick(learner)}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteLearner(learner.id)}>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
+        </CardContent>
+        </Card>
+    </div>
   );
 }
