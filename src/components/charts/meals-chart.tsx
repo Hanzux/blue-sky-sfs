@@ -8,6 +8,7 @@ import {
   ChartConfig,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
 } from '@/components/ui/chart';
 
 const chartData = [
