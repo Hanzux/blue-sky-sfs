@@ -22,6 +22,7 @@ import LearnerEnrollmentPage from '@/app/dashboard/learner-enrollment/page';
 import DailyAttendancePage from '@/app/dashboard/daily-attendance/page';
 import MealRecordingPage from '@/app/dashboard/meal-recording/page';
 import FoodItemsPage from '@/app/dashboard/food-items/page';
+import SchoolRegistrationPage from '@/app/dashboard/school-registration/page';
 
 export function Dashboard() {
   const pathname = usePathname();
@@ -83,6 +84,8 @@ export function Dashboard() {
         return <ReportingTool />;
       case '/dashboard/learner-enrollment':
         return <LearnerEnrollmentPage />;
+      case '/dashboard/school-registration':
+        return <SchoolRegistrationPage />;
       case '/dashboard/daily-attendance':
         return <DailyAttendancePage />;
       case '/dashboard/meal-recording':

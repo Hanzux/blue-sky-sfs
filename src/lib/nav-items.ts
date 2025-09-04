@@ -1,9 +1,10 @@
 
-import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse } from "lucide-react";
+import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School } from "lucide-react";
 
 export const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/learner-enrollment', icon: Users, label: 'Learner Enrollment' },
+    { href: '/dashboard/school-registration', icon: School, label: 'School Registration'},
     { href: '/dashboard/daily-attendance', icon: CalendarCheck, label: 'Daily Attendance' },
     { href: '/dashboard/meal-recording', icon: Soup, label: 'Meal Recording' },
     { href: '/dashboard/reporting', icon: BarChart3, label: 'Reporting' },
