@@ -50,7 +50,7 @@ export function MealsChart({ data }: MealsChartProps) {
           />
           <ChartLegend
             content={<ChartLegendContent nameKey="meal" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+            className="-translate-y-[2px] flex-wrap gap-2 text-foreground [&>*]:basis-1/4 [&>*]:justify-center"
           />
         </PieChart>
       </ResponsiveContainer>
