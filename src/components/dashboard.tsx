@@ -18,6 +18,10 @@ import { navItems, adminNavItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Button } from './ui/button';
+import LearnerEnrollmentPage from '@/app/dashboard/learner-enrollment/page';
+import DailyAttendancePage from '@/app/dashboard/daily-attendance/page';
+import MealRecordingPage from '@/app/dashboard/meal-recording/page';
+import FoodItemsPage from '@/app/dashboard/food-items/page';
 
 export function Dashboard() {
   const pathname = usePathname();
@@ -77,11 +81,18 @@ export function Dashboard() {
         );
       case '/dashboard/reporting':
         return <ReportingTool />;
+      case '/dashboard/learner-enrollment':
+        return <LearnerEnrollmentPage />;
+      case '/dashboard/daily-attendance':
+        return <DailyAttendancePage />;
+      case '/dashboard/meal-recording':
+        return <MealRecordingPage />;
+      case '/dashboard/food-items':
+        return <FoodItemsPage />;
       case '/admin/users':
         return <AdminUsersPage />;
       default:
         // You can decide what to render for other routes, e.g., a "Not Found" message
-        // For now, we'll check if it's one of the placeholder routes.
         if (navItems.some(item => item.href === pathname && item.href !== '#')) {
             return <div>This is the page for {pathname}</div>;
         }

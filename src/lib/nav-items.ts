@@ -3,11 +3,11 @@ import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse } from 
 
 export const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '/#', icon: Users, label: 'Learner Enrollment' },
-    { href: '/#', icon: CalendarCheck, label: 'Daily Attendance' },
-    { href: '/#', icon: Soup, label: 'Meal Recording' },
+    { href: '/dashboard/learner-enrollment', icon: Users, label: 'Learner Enrollment' },
+    { href: '/dashboard/daily-attendance', icon: CalendarCheck, label: 'Daily Attendance' },
+    { href: '/dashboard/meal-recording', icon: Soup, label: 'Meal Recording' },
     { href: '/dashboard/reporting', icon: BarChart3, label: 'Reporting' },
-    { href: '/#', icon: Package, label: 'Food Items' },
+    { href: '/dashboard/food-items', icon: Package, label: 'Food Items' },
     { href: '/#', icon: Warehouse, label: 'Stock Tracking' },
   ];
 
