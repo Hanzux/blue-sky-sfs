@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -29,12 +29,17 @@ export function Header() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
 
-    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-        }
-    }
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (pathname === '/search' || searchQuery.trim() !== '') {
+                router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+            }
+        }, 300); // 300ms debounce delay
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchQuery, router, pathname]);
 
     return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
@@ -96,18 +101,16 @@ export function Header() {
             </div>
 
             <div className="ml-auto flex-1 sm:flex-initial">
-              <form onSubmit={handleSearchSubmit}>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </form>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
              <Button variant="ghost" size="icon" className="h-8 w-8">
               <Bell className="h-4 w-4" />
