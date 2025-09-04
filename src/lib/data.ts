@@ -40,3 +40,19 @@ export const initialLearners: Learner[] = [
     { id: '2', name: 'Alice Smith', dob: '2016-07-21', className: 'Kindergarten', guardian: 'Bob Smith', district: 'Mbire', school: 'Mahuhwe Primary School' },
     { id: '3', name: 'Michael Johnson', dob: '2014-11-02', className: 'Grade 2', guardian: 'Chris Johnson', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
 ];
+
+export type FoodItem = {
+    id: string;
+    name: string;
+    category: string;
+    unit: string;
+    stock: number;
+};
+  
+export const initialFoodItems: FoodItem[] = [
+    { id: '1', name: 'Maize Meal', category: 'Grains', unit: 'kg', stock: 150 },
+    { id: '2', name: 'Beans', category: 'Legumes', unit: 'kg', stock: 80 },
+    { id: '3', name: 'Cooking Oil', category: 'Oils', unit: 'litres', stock: 50 },
+    { id: '4', name: 'Salt', category: 'Condiments', unit: 'kg', stock: 25 },
+    { id: '5', name: 'Sugar', category: 'Condiments', unit: 'kg', stock: 100 },
+];
