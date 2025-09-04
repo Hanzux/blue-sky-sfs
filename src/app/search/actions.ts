@@ -20,10 +20,15 @@ export async function searchAll(query: string) {
     f.name.toLowerCase().includes(lowerCaseQuery)
   ).map(f => ({ id: f.id, name: f.name }));
 
-  const userResults = (await getUsers()).filter(u =>
-    u.name?.toLowerCase().includes(lowerCaseQuery) ||
-    u.email?.toLowerCase().includes(lowerCaseQuery)
-  );
+  let userResults: any[] = [];
+  try {
+    userResults = (await getUsers()).filter(u =>
+      u.name?.toLowerCase().includes(lowerCaseQuery) ||
+      u.email?.toLowerCase().includes(lowerCaseQuery)
+    );
+  } catch (error) {
+      console.warn("Could not search users, Firebase Admin SDK likely not configured.", error);
+  }
   
   const caregiverResults = (await getCaregivers()).filter(c =>
     c.name.toLowerCase().includes(lowerCaseQuery)
