@@ -41,7 +41,7 @@ export default function SearchPage() {
   }, [query]);
 
   const resultCount = results
-    ? Object.values(results).reduce((acc,- val) => acc + val.length, 0)
+    ? Object.values(results).reduce((acc, val) => acc + val.length, 0)
     : 0;
 
   return (
