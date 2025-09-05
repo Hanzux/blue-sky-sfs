@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { initialSchools } from '@/lib/data';
 
 const schoolSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -34,6 +36,8 @@ type SchoolFormProps = {
   onSubmit: (data: any) => void;
   school?: School;
 };
+
+const districts = [...new Set(initialSchools.map(school => school.district))];
 
 export function SchoolForm({ onSubmit, school }: SchoolFormProps) {
   const form = useForm<SchoolFormValues>({
@@ -73,11 +77,20 @@ export function SchoolForm({ onSubmit, school }: SchoolFormProps) {
           control={form.control}
           name="district"
           render={({ field }) => (
-            <FormItem>
+             <FormItem>
               <FormLabel>District</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Mt Darwin" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a district" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {districts.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
