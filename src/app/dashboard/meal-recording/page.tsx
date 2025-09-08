@@ -178,6 +178,7 @@ export default function MealRecordingPage() {
   const handleExportPdf = (record: SavedMealRecord) => {
     const doc = new jsPDF();
     const learnersInRecord = initialLearners.filter(l => record.records.hasOwnProperty(l.id));
+    const notServedLearners = learnersInRecord.filter(l => !record.records[l.id]);
 
     doc.setFontSize(18);
     doc.text(`${record.mealType} Report`, 14, 22);
@@ -188,7 +189,30 @@ export default function MealRecordingPage() {
 
     (doc as any).autoTable({
         startY: 50,
-        head: [['Learner Name', 'Status']],
+        head: [['Metric', 'Value']],
+        body: [
+            ['Total Learners', record.stats.total],
+            ['Meals Served', record.stats.served],
+            ['Meals Not Served', record.stats.notServed],
+            ['Service Rate', `${record.stats.percentage.toFixed(1)}%`],
+        ],
+        theme: 'grid'
+    });
+    
+    let finalY = (doc as any).lastAutoTable.finalY;
+
+    if (notServedLearners.length > 0) {
+        (doc as any).autoTable({
+            startY: finalY + 10,
+            head: [['Learners Not Served']],
+            body: notServedLearners.map(learner => [learner.name]),
+        });
+        finalY = (doc as any).lastAutoTable.finalY;
+    }
+
+    (doc as any).autoTable({
+        startY: finalY + 10,
+        head: [['All Learners', 'Status']],
         body: learnersInRecord.map(learner => [
             learner.name,
             record.records[learner.id] ? 'Served' : 'Not Served'
