@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { FoodItem } from '@/lib/data';
+import { Label } from './ui/label';
 
 const adjustStockSchema = z.object({
   id: z.string(),
