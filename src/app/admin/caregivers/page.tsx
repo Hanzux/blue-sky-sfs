@@ -126,15 +126,14 @@ export default function CaregiverManagementPage() {
   }, []);
 
   useEffect(() => {
-    const totalCaregivers = caregivers.length;
-    const linkedLearners = Math.floor(totalCaregivers * 1.8);
-    const linkedCaregivers = Math.floor(totalCaregivers * 0.9);
-    // Move random number generation to useEffect to avoid hydration errors
+    // Generate a stable random number on mount for "New This Month"
+    const newThisMonth = Math.floor(Math.random() * 3 + 1);
+
     setCaregiverMetrics({
-        totalCaregivers,
-        linkedLearners,
-        newThisMonth: Math.floor(Math.random() * 3 + 1),
-        linkedCaregivers,
+      totalCaregivers: caregivers.length,
+      linkedLearners: Math.floor(caregivers.length * 1.8),
+      linkedCaregivers: Math.floor(caregivers.length * 0.9),
+      newThisMonth: newThisMonth
     });
   }, [caregivers]);
   
