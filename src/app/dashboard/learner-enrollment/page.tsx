@@ -215,12 +215,13 @@ export default function LearnerEnrollmentPage() {
 
   const handleExportTableToPdf = () => {
     const doc = new jsPDF();
-    const tableColumns = ["Code", "Name", "Gender", "Date of Birth", "School", "District"];
+    const tableColumns = ["Code", "Name", "Gender", "Date of Birth", "Class", "School", "District"];
     const tableRows = filteredLearners.map(learner => [
       learner.code,
       learner.name,
       learner.gender,
       learner.dob,
+      learner.className,
       learner.school,
       learner.district,
     ]);
@@ -603,4 +604,3 @@ export default function LearnerEnrollmentPage() {
     </div>
   );
 }
-
