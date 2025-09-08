@@ -78,10 +78,12 @@ export default function MealRecordingPage() {
             console.error("Failed to parse saved meal records from localStorage", error);
         }
     }
-}, []);
+  }, []);
 
   useEffect(() => {
-      localStorage.setItem('savedMealRecords', JSON.stringify(savedMealRecords));
+      if (savedMealRecords.length > 0) {
+        localStorage.setItem('savedMealRecords', JSON.stringify(savedMealRecords));
+      }
   }, [savedMealRecords]);
 
   const availableSchools = useMemo(() => {
