@@ -83,7 +83,9 @@ export default function DailyAttendancePage() {
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('savedAttendances', JSON.stringify(savedAttendances));
+        if (savedAttendances.length > 0) {
+            localStorage.setItem('savedAttendances', JSON.stringify(savedAttendances));
+        }
     }, [savedAttendances]);
 
   const availableSchools = useMemo(() => {
