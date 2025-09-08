@@ -19,22 +19,53 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
-import { Users, CheckCheck, UserCheck, UserX } from 'lucide-react';
+import { Users, CheckCheck, UserCheck, UserX, MoreHorizontal, FileDown, Eye, BookCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
+const SAVED_ITEMS_PER_PAGE = 5;
 
 type AttendanceStatus = 'present' | 'absent' | 'excused';
 
+type AttendanceStats = {
+    present: number;
+    absent: number;
+    excused: number;
+    total: number;
+    percentage: number;
+};
+
+type SavedAttendance = {
+    id: string;
+    date: Date;
+    district: string;
+    school: string;
+    class: string;
+    records: Record<string, AttendanceStatus>;
+    stats: AttendanceStats;
+};
+
+
 export default function DailyAttendancePage() {
+  const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
+  
   const [filterDistrict, setFilterDistrict] = useState<string>(districts[1] || 'All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [filterClass, setFilterClass] = useState<string>('All');
   const [attendanceDate, setAttendanceDate] = useState<Date | undefined>(new Date());
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
-  const { toast } = useToast();
-  const { addAuditLog } = useAuditLog();
+  
+  const [savedAttendances, setSavedAttendances] = useState<SavedAttendance[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState<SavedAttendance | null>(null);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -62,13 +93,21 @@ export default function DailyAttendancePage() {
   }, [filterSchool, filterClass]);
 
   const filteredLearners = useMemo(() => {
-    if (filterSchool === 'All') return [];
-    let learners = initialLearners.filter(learner => learner.school === filterSchool);
-    if(filterClass !== 'All') {
-        learners = learners.filter(learner => learner.className === filterClass);
-    }
+    if (filterSchool === 'All' || filterClass === 'All') return [];
+    let learners = initialLearners.filter(learner => learner.school === filterSchool && learner.className === filterClass);
     return learners;
   }, [filterSchool, filterClass]);
+
+  const stats: AttendanceStats = useMemo(() => {
+    const total = filteredLearners.length;
+    if (total === 0) return { present: 0, absent: 0, excused: 0, total: 0, percentage: 0 };
+
+    const presentCount = Object.values(attendance).filter(s => s === 'present').length;
+    const absentCount = Object.values(attendance).filter(s => s === 'absent').length;
+    const excusedCount = Object.values(attendance).filter(s => s === 'excused').length;
+    const percentage = total > 0 ? (presentCount / total) * 100 : 0;
+    return { present: presentCount, absent: absentCount, excused: excusedCount, total, percentage };
+  }, [attendance, filteredLearners]);
 
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
@@ -94,32 +133,72 @@ export default function DailyAttendancePage() {
   };
 
   const handleSave = () => {
-    const description = `Attendance for ${filterClass} at ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been recorded.`;
-    console.log({
+    if (!attendanceDate || filteredLearners.length === 0 || Object.keys(attendance).length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot Save',
+        description: 'Please ensure you have selected a class and recorded attendance for at least one learner.',
+      });
+      return;
+    }
+
+    const newRecord: SavedAttendance = {
+      id: new Date().toISOString(),
       date: attendanceDate,
-      school: filterSchool,
       district: filterDistrict,
+      school: filterSchool,
       class: filterClass,
-      records: attendance,
-    });
+      records: { ...attendance },
+      stats: { ...stats },
+    };
+    
+    setSavedAttendances(prev => [newRecord, ...prev]);
+
+    const description = `Attendance for ${filterClass} at ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been saved.`;
     toast({
       title: 'Attendance Saved',
       description,
     });
     addAuditLog({ action: 'Attendance Recorded', details: `Recorded attendance for ${Object.keys(attendance).length} learners in ${filterClass} at ${filterSchool}` });
+    setAttendance({});
   }
   
-  const stats = useMemo(() => {
-    const total = filteredLearners.length;
-    if (total === 0) return { present: 0, absent: 0, excused: 0, total: 0, percentage: 0 };
+  const handleViewRecord = (record: SavedAttendance) => {
+    setViewingRecord(record);
+    setIsViewDialogOpen(true);
+  }
 
-    const presentCount = Object.values(attendance).filter(s => s === 'present').length;
-    const absentCount = Object.values(attendance).filter(s => s === 'absent').length;
-    const excusedCount = Object.values(attendance).filter(s => s === 'excused').length;
-    const percentage = total > 0 ? (presentCount / total) * 100 : 0;
-    return { present: presentCount, absent: absentCount, excused: excusedCount, total, percentage };
-  }, [attendance, filteredLearners]);
+  const handleExportPdf = (record: SavedAttendance) => {
+    const doc = new jsPDF();
+    const learnersInRecord = initialLearners.filter(l => record.records[l.id]);
 
+    doc.setFontSize(18);
+    doc.text(`Attendance Report`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`School: ${record.school}`, 14, 30);
+    doc.text(`Class: ${record.class}`, 14, 36);
+    doc.text(`Date: ${record.date.toLocaleDateString()}`, 14, 42);
+
+    (doc as any).autoTable({
+        startY: 50,
+        head: [['Learner Name', 'Status']],
+        body: learnersInRecord.map(learner => [
+            learner.name,
+            record.records[learner.id].charAt(0).toUpperCase() + record.records[learner.id].slice(1),
+        ]),
+    });
+    
+    doc.save(`attendance_${record.school}_${record.class}_${record.date.toISOString().split('T')[0]}.pdf`);
+    addAuditLog({ action: 'Attendance Exported', details: `Exported PDF for ${record.class} at ${record.school}` });
+  }
+
+  const paginatedSavedAttendances = useMemo(() => {
+    const startIndex = (currentPage - 1) * SAVED_ITEMS_PER_PAGE;
+    const endIndex = startIndex + SAVED_ITEMS_PER_PAGE;
+    return savedAttendances.slice(startIndex, endIndex);
+  }, [savedAttendances, currentPage]);
+
+  const totalPages = Math.ceil(savedAttendances.length / SAVED_ITEMS_PER_PAGE);
 
   return (
     <div className="flex justify-center">
@@ -232,7 +311,7 @@ export default function DailyAttendancePage() {
                     <TableCell className="font-medium">{learner.name}</TableCell>
                     <TableCell className="text-right">
                       <RadioGroup
-                        defaultValue="present"
+                        value={attendance[learner.id] || 'present'}
                         onValueChange={(value) => handleStatusChange(learner.id, value as AttendanceStatus)}
                         className="flex justify-end gap-4"
                       >
@@ -272,7 +351,114 @@ export default function DailyAttendancePage() {
             </CardFooter>
         )}
       </Card>
+
+        {savedAttendances.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Saved Attendance Records</CardTitle>
+                    <CardDescription>View and export previously saved attendance sheets.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>School</TableHead>
+                                <TableHead>Class</TableHead>
+                                <TableHead>Rate</TableHead>
+                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {paginatedSavedAttendances.map((record) => (
+                                <TableRow key={record.id}>
+                                    <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{record.school}</TableCell>
+                                    <TableCell>{record.class}</TableCell>
+                                    <TableCell>{record.stats.percentage.toFixed(1)}%</TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => handleViewRecord(record)}>
+                                                    <Eye className="mr-2 h-4 w-4" /> View
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleExportPdf(record)}>
+                                                    <FileDown className="mr-2 h-4 w-4" /> Export PDF
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+                 {totalPages > 1 && (
+                    <CardFooter className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                        </div>
+                    </CardFooter>
+                 )}
+            </Card>
+        )}
+
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>View Attendance Record</DialogTitle>
+                    {viewingRecord && (
+                         <DialogDescription>
+                            Showing attendance for {viewingRecord.class} at {viewingRecord.school} on {new Date(viewingRecord.date).toLocaleDateString()}.
+                        </DialogDescription>
+                    )}
+                </DialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Learner</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {viewingRecord && initialLearners.filter(l => viewingRecord.records[l.id]).map(learner => (
+                                <TableRow key={learner.id}>
+                                    <TableCell>{learner.name}</TableCell>
+                                    <TableCell>{viewingRecord.records[learner.id]}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
 }
+
+    
