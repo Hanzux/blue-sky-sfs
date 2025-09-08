@@ -75,6 +75,13 @@ type Caregiver = {
   phone: string;
 };
 
+type CaregiverMetrics = {
+    totalCaregivers: number;
+    linkedLearners: number;
+    newThisMonth: number;
+    linkedCaregivers: number;
+};
+
 const ITEMS_PER_PAGE = 5;
 
 export default function CaregiverManagementPage() {
@@ -86,6 +93,12 @@ export default function CaregiverManagementPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [caregiverMetrics, setCaregiverMetrics] = useState<CaregiverMetrics>({
+      totalCaregivers: 0,
+      linkedLearners: 0,
+      newThisMonth: 0,
+      linkedCaregivers: 0,
+  });
 
   const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateCaregiver, null);
@@ -113,6 +126,16 @@ export default function CaregiverManagementPage() {
   useEffect(() => {
     fetchCaregivers();
   }, []);
+
+  useEffect(() => {
+    const totalCaregivers = caregivers.length;
+    // These are simulated metrics as we don't have the relational data
+    const linkedLearners = Math.floor(totalCaregivers * 1.8);
+    const newThisMonth = Math.floor(Math.random() * 3 + 1);
+    const linkedCaregivers = Math.floor(totalCaregivers * 0.9);
+
+    setCaregiverMetrics({ totalCaregivers, linkedLearners, newThisMonth, linkedCaregivers });
+  }, [caregivers]);
   
   const handleActionState = (state: any, successMessage: string, closeDialogs: () => void) => {
     if (!state) return;
@@ -142,16 +165,6 @@ export default function CaregiverManagementPage() {
    useEffect(() => {
      handleActionState(deleteState, 'Caregiver deleted successfully.', () => setIsDeleteDialogOpen(false));
    }, [deleteState]);
-
-   const caregiverMetrics = useMemo(() => {
-    const totalCaregivers = caregivers.length;
-    // These are simulated metrics as we don't have the relational data
-    const linkedLearners = Math.floor(totalCaregivers * 1.8); 
-    const newThisMonth = Math.floor(Math.random() * 3 + 1);
-    const linkedCaregivers = Math.floor(totalCaregivers * 0.9);
-
-    return { totalCaregivers, linkedLearners, newThisMonth, linkedCaregivers };
-  }, [caregivers]);
    
   const handleNewClick = () => {
     setSelectedCaregiver(null);
@@ -467,5 +480,3 @@ export default function CaregiverManagementPage() {
     </div>
   );
 }
-
-    
