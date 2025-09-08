@@ -19,13 +19,36 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
-import { Users, UtensilsCrossed, Utensils, UserX } from 'lucide-react';
+import { Users, UtensilsCrossed, Utensils, UserX, MoreHorizontal, FileDown, Eye } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const mealTypes = ['Breakfast', 'Lunch', 'Snack'];
+const SAVED_ITEMS_PER_PAGE = 5;
+
+type MealStats = {
+    served: number;
+    notServed: number;
+    total: number;
+    percentage: number;
+};
+
+type SavedMealRecord = {
+    id: string;
+    date: Date;
+    district: string;
+    school: string;
+    class: string;
+    mealType: string;
+    records: Record<string, boolean>;
+    stats: MealStats;
+}
 
 export default function MealRecordingPage() {
   const [filterDistrict, setFilterDistrict] = useState<string>(districts[1] || 'All');
@@ -36,6 +59,14 @@ export default function MealRecordingPage() {
   const [mealRecords, setMealRecords] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const { addAuditLog } = useAuditLog();
+  
+  const [savedMealRecords, setSavedMealRecords] = useState<SavedMealRecord[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [viewingRecord, setViewingRecord] = useState<SavedMealRecord | null>(null);
+
+  const [savedFilterDistrict, setSavedFilterDistrict] = useState<string>('All');
+  const [savedFilterSchool, setSavedFilterSchool] = useState<string>('All');
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -96,25 +127,8 @@ export default function MealRecordingPage() {
     });
     setMealRecords(newRecords);
   }
-
-  const handleSave = () => {
-    const description = `${mealType} records for ${filterClass} at ${filterSchool} on ${mealDate?.toLocaleDateString()} have been saved.`;
-    console.log({
-      date: mealDate,
-      district: filterDistrict,
-      school: filterSchool,
-      class: filterClass,
-      mealType: mealType,
-      records: mealRecords,
-    });
-    toast({
-      title: 'Meal Records Saved',
-      description,
-    });
-    addAuditLog({ action: 'Meal Recorded', details: `Recorded ${mealType} for ${Object.keys(mealRecords).length} learners in ${filterClass} at ${filterSchool}` });
-  }
-
-  const stats = useMemo(() => {
+  
+  const stats: MealStats = useMemo(() => {
     const total = filteredLearners.length;
     if (total === 0) return { served: 0, notServed: 0, total: 0, percentage: 0 };
 
@@ -123,6 +137,102 @@ export default function MealRecordingPage() {
     const percentage = total > 0 ? (servedCount / total) * 100 : 0;
     return { served: servedCount, notServed: notServedCount, total, percentage };
   }, [mealRecords, filteredLearners]);
+
+  const handleSave = () => {
+    if (!mealDate || filteredLearners.length === 0 || Object.keys(mealRecords).length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Cannot Save',
+            description: 'Please ensure you have selected a class and recorded meals for at least one learner.',
+        });
+        return;
+    }
+
+    const newRecord: SavedMealRecord = {
+        id: new Date().toISOString(),
+        date: mealDate,
+        district: filterDistrict,
+        school: filterSchool,
+        class: filterClass,
+        mealType: mealType,
+        records: { ...mealRecords },
+        stats: { ...stats }
+    };
+    
+    setSavedMealRecords(prev => [newRecord, ...prev]);
+
+    const description = `${mealType} records for ${filterClass} at ${filterSchool} on ${mealDate?.toLocaleDateString()} have been saved.`;
+    toast({
+      title: 'Meal Records Saved',
+      description,
+    });
+    addAuditLog({ action: 'Meal Recorded', details: `Recorded ${mealType} for ${Object.keys(mealRecords).length} learners in ${filterClass} at ${filterSchool}` });
+    setMealRecords({});
+  }
+
+  const handleViewRecord = (record: SavedMealRecord) => {
+    setViewingRecord(record);
+    setIsViewDialogOpen(true);
+  }
+
+  const handleExportPdf = (record: SavedMealRecord) => {
+    const doc = new jsPDF();
+    const learnersInRecord = initialLearners.filter(l => record.records.hasOwnProperty(l.id));
+
+    doc.setFontSize(18);
+    doc.text(`${record.mealType} Report`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`School: ${record.school}`, 14, 30);
+    doc.text(`Class: ${record.class}`, 14, 36);
+    doc.text(`Date: ${record.date.toLocaleDateString()}`, 14, 42);
+
+    (doc as any).autoTable({
+        startY: 50,
+        head: [['Learner Name', 'Status']],
+        body: learnersInRecord.map(learner => [
+            learner.name,
+            record.records[learner.id] ? 'Served' : 'Not Served'
+        ]),
+    });
+    
+    doc.save(`meals_${record.school}_${record.class}_${record.date.toISOString().split('T')[0]}.pdf`);
+    addAuditLog({ action: 'Meal Record Exported', details: `Exported PDF for ${record.mealType} at ${record.school}` });
+  }
+
+  const filteredSavedMealRecords = useMemo(() => {
+    return savedMealRecords.filter(record => {
+      const districtMatch = savedFilterDistrict === 'All' || record.district === savedFilterDistrict;
+      const schoolMatch = savedFilterSchool === 'All' || record.school === savedFilterSchool;
+      return districtMatch && schoolMatch;
+    });
+  }, [savedMealRecords, savedFilterDistrict, savedFilterSchool]);
+
+  const paginatedSavedMealRecords = useMemo(() => {
+    const startIndex = (currentPage - 1) * SAVED_ITEMS_PER_PAGE;
+    const endIndex = startIndex + SAVED_ITEMS_PER_PAGE;
+    return filteredSavedMealRecords.slice(startIndex, endIndex);
+  }, [filteredSavedMealRecords, currentPage]);
+
+  const totalPages = Math.ceil(filteredSavedMealRecords.length / SAVED_ITEMS_PER_PAGE);
+
+  const availableSavedSchools = useMemo(() => {
+    if (savedFilterDistrict === 'All') {
+      return ["All", ...new Set(savedMealRecords.map(s => s.school))];
+    }
+    const schoolsInDistrict = [...new Set(savedMealRecords.filter(s => s.district === savedFilterDistrict).map(s => s.school))];
+    return ["All", ...schoolsInDistrict];
+  }, [savedFilterDistrict, savedMealRecords]);
+
+  const handleSavedDistrictChange = (district: string) => {
+    setSavedFilterDistrict(district);
+    setSavedFilterSchool('All');
+    setCurrentPage(1);
+  }
+
+  const handleSavedSchoolChange = (school: string) => {
+    setSavedFilterSchool(school);
+    setCurrentPage(1);
+  }
   
   const allSelected = filteredLearners.length > 0 && Object.keys(mealRecords).length === filteredLearners.length && Object.values(mealRecords).every(r => r);
 
@@ -281,6 +391,137 @@ export default function MealRecordingPage() {
             </CardFooter>
         )}
       </Card>
+
+       {savedMealRecords.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Saved Meal Records</CardTitle>
+                    <CardDescription>View and export previously saved meal records.</CardDescription>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Filter by District</Label>
+                            <Select value={savedFilterDistrict} onValueChange={handleSavedDistrictChange}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select District" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {["All", ...new Set(savedMealRecords.map(r => r.district))].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Filter by School</Label>
+                            <Select value={savedFilterSchool} onValueChange={handleSavedSchoolChange} disabled={savedFilterDistrict === 'All'}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select School" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {availableSavedSchools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>School</TableHead>
+                                <TableHead>Class</TableHead>
+                                <TableHead>Meal Type</TableHead>
+                                <TableHead>Rate</TableHead>
+                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {paginatedSavedMealRecords.map((record) => (
+                                <TableRow key={record.id}>
+                                    <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{record.school}</TableCell>
+                                    <TableCell>{record.class}</TableCell>
+                                    <TableCell>{record.mealType}</TableCell>
+                                    <TableCell>{record.stats.percentage.toFixed(1)}%</TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => handleViewRecord(record)}>
+                                                    <Eye className="mr-2 h-4 w-4" /> View
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleExportPdf(record)}>
+                                                    <FileDown className="mr-2 h-4 w-4" /> Export PDF
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+                 {totalPages > 1 && (
+                    <CardFooter className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                        </div>
+                        <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                        </div>
+                    </CardFooter>
+                 )}
+            </Card>
+        )}
+
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>View Meal Record</DialogTitle>
+                    {viewingRecord && (
+                         <DialogDescription>
+                            Showing {viewingRecord.mealType} for {viewingRecord.class} at {viewingRecord.school} on {new Date(viewingRecord.date).toLocaleDateString()}.
+                        </DialogDescription>
+                    )}
+                </DialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Learner</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {viewingRecord && initialLearners.filter(l => viewingRecord.records.hasOwnProperty(l.id)).map(learner => (
+                                <TableRow key={learner.id}>
+                                    <TableCell>{learner.name}</TableCell>
+                                    <TableCell>{viewingRecord.records[learner.id] ? 'Served' : 'Not Served'}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
