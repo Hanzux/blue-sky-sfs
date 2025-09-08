@@ -64,14 +64,14 @@ export default function DataReportsPage() {
 
         switch (reportType) {
             case 'attendance':
-                headers = ['Learner Name', 'Class', 'School', 'District', 'Status'];
+                headers = ['Learner Name', 'Gender', 'Class', 'School', 'District', 'Status'];
                 data = learners.map(l => ({ 
                     ...l, 
                     status: Math.random() > 0.1 ? 'Present' : 'Absent' 
                 }));
                 break;
             case 'meals':
-                headers = ['Learner Name', 'Class', 'School', 'Breakfast', 'Lunch'];
+                headers = ['Learner Name', 'Gender', 'Class', 'School', 'Breakfast', 'Lunch'];
                 data = learners.map(l => ({ 
                     ...l, 
                     breakfast: Math.random() > 0.05 ? 'Served' : 'Not Served',
@@ -83,7 +83,7 @@ export default function DataReportsPage() {
                 data = foodItems;
                 break;
             case 'trends':
-                headers = ['Learner Name', 'Class', 'Attendance Rate (%)', 'Meals Served (%)'];
+                headers = ['Learner Name', 'Gender', 'Class', 'Attendance Rate (%)', 'Meals Served (%)'];
                 data = learners.map(l => ({
                     ...l,
                     attendanceRate: (Math.random() * 15 + 85).toFixed(1),
