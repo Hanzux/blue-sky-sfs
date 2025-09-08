@@ -15,9 +15,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { initialLearners, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const mealTypes = ['Breakfast', 'Lunch', 'Snack'];
@@ -161,7 +162,11 @@ export default function MealRecordingPage() {
             </div>
             <div className="grid gap-2">
                 <Label>Date</Label>
-                <DatePicker date={mealDate} onDateChange={setMealDate} />
+                <Input
+                    type="date"
+                    value={mealDate ? format(mealDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => setMealDate(e.target.value ? new Date(e.target.value) : undefined)}
+                />
             </div>
             <div className="grid gap-2">
                 <Label>Meal Type</Label>

@@ -6,12 +6,13 @@ import { DateRange } from 'react-day-picker';
 import { generateReportSummary, type GenerateReportSummaryOutput } from '@/ai/flows/generate-report-summary';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Bot } from 'lucide-react';
+import { Input } from './ui/input';
+import { format } from 'date-fns';
 
 const keyMetrics = [
     { value: 'overall_attendance', label: 'Overall Attendance' },
@@ -70,8 +71,20 @@ export function ReportingTool() {
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-3">
           <div className="grid gap-2 mr-4">
-            <Label htmlFor="date-range">Date Range</Label>
-            <DateRangePicker date={date} onDateChange={setDate} className="w-full" />
+            <Label>Date Range</Label>
+            <div className="flex items-center gap-2">
+                <Input
+                    type="date"
+                    value={date?.from ? format(date.from, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => setDate(prev => ({...prev, from: e.target.valueAsDate || undefined}))}
+                />
+                <span>to</span>
+                 <Input
+                    type="date"
+                    value={date?.to ? format(date.to, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => setDate(prev => ({...prev, to: e.target.valueAsDate || undefined}))}
+                />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="group-by">Group By</Label>

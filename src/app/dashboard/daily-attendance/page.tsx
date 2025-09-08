@@ -15,9 +15,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { DatePicker } from '@/components/ui/date-picker';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
@@ -157,7 +158,11 @@ export default function DailyAttendancePage() {
             </div>
             <div className="grid gap-2">
                 <Label>Date</Label>
-                <DatePicker date={attendanceDate} onDateChange={setAttendanceDate} />
+                <Input
+                    type="date"
+                    value={attendanceDate ? format(attendanceDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => setAttendanceDate(e.target.value ? new Date(e.target.value) : undefined)}
+                />
             </div>
           </div>
         </CardHeader>
