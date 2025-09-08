@@ -54,6 +54,7 @@ export default function LearnerEnrollmentPage() {
   const [viewingLearner, setViewingLearner] = useState<Learner | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
+  const [filterClass, setFilterClass] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,13 +65,24 @@ export default function LearnerEnrollmentPage() {
     return ["All", ...initialSchools.filter(s => s.district === filterDistrict).map(s => s.name)];
   }, [filterDistrict]);
 
+  const availableClasses = useMemo(() => {
+    if (filterSchool === 'All') {
+        return ['All'];
+    }
+    const schoolLearners = learners.filter(l => l.school === filterSchool);
+    const classes = [...new Set(schoolLearners.map(l => l.className))];
+    return ['All', ...classes.sort()];
+  }, [filterSchool, learners]);
+
+
   const filteredLearners = useMemo(() => {
     return learners.filter(learner => {
       const districtMatch = filterDistrict === 'All' || learner.district === filterDistrict;
       const schoolMatch = filterSchool === 'All' || learner.school === filterSchool;
-      return districtMatch && schoolMatch;
+      const classMatch = filterClass === 'All' || learner.className === filterClass;
+      return districtMatch && schoolMatch && classMatch;
     }).reverse();
-  }, [learners, filterDistrict, filterSchool]);
+  }, [learners, filterDistrict, filterSchool, filterClass]);
   
   const learnerMetrics = useMemo(() => {
     const totalLearners = filteredLearners.length;
@@ -99,11 +111,17 @@ export default function LearnerEnrollmentPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterDistrict, filterSchool]);
+  }, [filterDistrict, filterSchool, filterClass]);
 
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
     setFilterSchool('All');
+    setFilterClass('All');
+  }
+
+  const handleSchoolChange = (school: string) => {
+    setFilterSchool(school);
+    setFilterClass('All');
   }
 
   const generateLearnerCode = (schoolName: string) => {
@@ -369,7 +387,7 @@ export default function LearnerEnrollmentPage() {
                     </Dialog>
                 </div>
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
                 <div className="grid gap-2">
                   <Label>District</Label>
                   <Select value={filterDistrict} onValueChange={handleDistrictChange}>
@@ -383,7 +401,7 @@ export default function LearnerEnrollmentPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label>School</Label>
-                  <Select value={filterSchool} onValueChange={setFilterSchool}>
+                  <Select value={filterSchool} onValueChange={handleSchoolChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select School" />
                     </SelectTrigger>
@@ -391,6 +409,17 @@ export default function LearnerEnrollmentPage() {
                       {availableSchools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid gap-2">
+                    <Label>Class</Label>
+                    <Select value={filterClass} onValueChange={setFilterClass} disabled={filterSchool === 'All'}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
               </div>
         </CardHeader>
@@ -402,7 +431,7 @@ export default function LearnerEnrollmentPage() {
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Gender</TableHead>
-                    <TableHead className="hidden sm:table-cell">Date of Birth</TableHead>
+                    <TableHead className="hidden sm:table-cell">Class</TableHead>
                     <TableHead>School</TableHead>
                     <TableHead>
                         <span className="sr-only">Actions</span>
@@ -415,7 +444,7 @@ export default function LearnerEnrollmentPage() {
                         <TableCell>{learner.code}</TableCell>
                         <TableCell className="font-medium">{learner.name}</TableCell>
                         <TableCell>{learner.gender}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{learner.dob}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{learner.className}</TableCell>
                         <TableCell>{learner.school}</TableCell>
                         <TableCell>
                         <DropdownMenu>
