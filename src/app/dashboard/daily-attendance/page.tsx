@@ -19,6 +19,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
+import { Users, CheckCheck, UserCheck, UserX } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
@@ -103,22 +105,67 @@ export default function DailyAttendancePage() {
     });
   }
   
-  const getAttendanceStats = () => {
+  const stats = useMemo(() => {
     const total = filteredLearners.length;
-    if (total === 0) return { present: 0, absent: 0, excused: 0, total: 0, percentage: '0.00' };
+    if (total === 0) return { present: 0, absent: 0, excused: 0, total: 0, percentage: 0 };
 
     const presentCount = Object.values(attendance).filter(s => s === 'present').length;
     const absentCount = Object.values(attendance).filter(s => s === 'absent').length;
     const excusedCount = Object.values(attendance).filter(s => s === 'excused').length;
-    const percentage = total > 0 ? ((presentCount / total) * 100).toFixed(2) : '0.00';
+    const percentage = total > 0 ? (presentCount / total) * 100 : 0;
     return { present: presentCount, absent: absentCount, excused: excusedCount, total, percentage };
-  }
+  }, [attendance, filteredLearners]);
 
-  const stats = getAttendanceStats();
 
   return (
     <div className="flex justify-center">
-      <Card className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl space-y-6">
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Learners in Class</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.total}</div>
+                    <p className="text-xs text-muted-foreground">Total learners in the selected class</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
+                    <CheckCheck className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.percentage.toFixed(1)}%</div>
+                    <Progress value={stats.percentage} className="h-2 mt-2" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Present Today</CardTitle>
+                    <UserCheck className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.present}</div>
+                    <p className="text-xs text-muted-foreground">Learners marked as present</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Absent / Excused</CardTitle>
+                    <UserX className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.absent + stats.excused}</div>
+                     <p className="text-xs text-muted-foreground">{stats.absent} Absent, {stats.excused} Excused</p>
+                </CardContent>
+            </Card>
+        </div>
+
+
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Daily Attendance</CardTitle>
           <CardDescription>Record and monitor daily learner attendance for a selected school.</CardDescription>
@@ -214,13 +261,14 @@ export default function DailyAttendancePage() {
         {filteredLearners.length > 0 && (
             <CardFooter className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs text-muted-foreground">
-                    <p><strong>Present:</strong> {stats.present}/{stats.total} ({stats.percentage}%)</p>
+                    <p><strong>Present:</strong> {stats.present}/{stats.total} ({stats.percentage.toFixed(1)}%)</p>
                     <p><strong>Absent:</strong> {stats.absent} | <strong>Excused:</strong> {stats.excused}</p>
                 </div>
                 <Button onClick={handleSave}>Save Attendance</Button>
             </CardFooter>
         )}
       </Card>
+      </div>
     </div>
   );
 }
