@@ -55,12 +55,14 @@ export const initialLearners: Learner[] = learnersData.map(learner => {
     if (!school) {
         return { ...learner, code: 'N/A' };
     }
-    const count = (schoolLearnerCount[school.id] || 0) + 1;
-    schoolLearnerCount[school.id] = count;
+    const classCode = learner.className.split(' ').map(word => word[0]).join('').toUpperCase();
+    const classLearnerKey = `${school.id}-${learner.className}`;
+    const count = (schoolLearnerCount[classLearnerKey] || 0) + 1;
+    schoolLearnerCount[classLearnerKey] = count;
 
     return {
         ...learner,
-        code: `${school.code}-${count.toString().padStart(3, '0')}`
+        code: `${school.code}-${classCode}-${count.toString().padStart(3, '0')}`
     }
 });
 

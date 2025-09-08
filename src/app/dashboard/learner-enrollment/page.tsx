@@ -124,18 +124,22 @@ export default function LearnerEnrollmentPage() {
     setFilterClass('All');
   }
 
-  const generateLearnerCode = (schoolName: string) => {
+  const generateLearnerCode = (schoolName: string, className: string) => {
     const school = initialSchools.find(s => s.name === schoolName);
     if (!school) return 'N/A';
-    const learnersInSchool = learners.filter(l => l.school === schoolName).length;
-    return `${school.code}-${(learnersInSchool + 1).toString().padStart(3, '0')}`;
+    
+    // Create a simple class code, e.g., "Grade 1" -> "G1"
+    const classCode = className.split(' ').map(word => word[0]).join('').toUpperCase();
+
+    const learnersInClass = learners.filter(l => l.school === schoolName && l.className === className).length;
+    return `${school.code}-${classCode}-${(learnersInClass + 1).toString().padStart(3, '0')}`;
   }
 
   const handleAddLearner = (learner: Omit<Learner, 'id' | 'code'>) => {
     const newLearner = { 
         ...learner, 
         id: (learners.length + 1).toString(),
-        code: generateLearnerCode(learner.school),
+        code: generateLearnerCode(learner.school, learner.className),
     };
     setLearners([...learners, newLearner]);
     addAuditLog({ action: 'Learner Enrolled', details: `Enrolled new learner: ${learner.name}` });
@@ -201,7 +205,7 @@ export default function LearnerEnrollmentPage() {
                 const learnersToAdd = newLearners.map((learner, i) => ({ 
                     ...learner, 
                     id: (learners.length + i + 1).toString(),
-                    code: generateLearnerCode(learner.school),
+                    code: generateLearnerCode(learner.school, learner.className),
                 }))
                 setLearners(prev => [...prev, ...learnersToAdd as Learner[]]);
             }
