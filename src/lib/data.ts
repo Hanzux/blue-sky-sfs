@@ -29,6 +29,7 @@ export const initialSchools: School[] = [
 
 export type Learner = {
   id: string;
+  code: string;
   name: string;
   dob: string;
   gender: 'Male' | 'Female';
@@ -38,7 +39,7 @@ export type Learner = {
   school: string;
 };
 
-export const initialLearners: Learner[] = [
+const learnersData = [
     { id: '1', name: 'John Doe', dob: '2015-03-12', gender: 'Male', className: 'Grade 1', guardian: 'Jane Doe', district: 'Mt Darwin', school: 'Dotito Primary School' },
     { id: '2', name: 'Alice Smith', dob: '2016-07-21', gender: 'Female', className: 'Kindergarten', guardian: 'Bob Smith', district: 'Mbire', school: 'Mahuhwe Primary School' },
     { id: '3', name: 'Michael Johnson', dob: '2014-11-02', gender: 'Male', className: 'Grade 2', guardian: 'Chris Johnson', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
@@ -46,6 +47,23 @@ export const initialLearners: Learner[] = [
     { id: '5', name: 'David Wilson', dob: '2016-01-15', gender: 'Male', className: 'Kindergarten', guardian: 'Mary Wilson', district: 'Mbire', school: 'Mahuhwe Primary School' },
     { id: '6', name: 'Sophia Miller', dob: '2014-06-30', gender: 'Female', className: 'Grade 2', guardian: 'James Miller', district: 'Mt Darwin', school: 'Kadohwata Primary School' },
 ];
+
+const schoolLearnerCount: Record<string, number> = {};
+
+export const initialLearners: Learner[] = learnersData.map(learner => {
+    const school = initialSchools.find(s => s.name === learner.school);
+    if (!school) {
+        return { ...learner, code: 'N/A' };
+    }
+    const count = (schoolLearnerCount[school.id] || 0) + 1;
+    schoolLearnerCount[school.id] = count;
+
+    return {
+        ...learner,
+        code: `${school.code}-${count.toString().padStart(3, '0')}`
+    }
+});
+
 
 export type FoodItem = {
     id: string;

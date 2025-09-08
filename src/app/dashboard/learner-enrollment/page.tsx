@@ -101,8 +101,19 @@ export default function LearnerEnrollmentPage() {
     setFilterSchool('All');
   }
 
-  const handleAddLearner = (learner: Omit<Learner, 'id'>) => {
-    const newLearner = { ...learner, id: (learners.length + 1).toString() };
+  const generateLearnerCode = (schoolName: string) => {
+    const school = initialSchools.find(s => s.name === schoolName);
+    if (!school) return 'N/A';
+    const learnersInSchool = learners.filter(l => l.school === schoolName).length;
+    return `${school.code}-${(learnersInSchool + 1).toString().padStart(3, '0')}`;
+  }
+
+  const handleAddLearner = (learner: Omit<Learner, 'id' | 'code'>) => {
+    const newLearner = { 
+        ...learner, 
+        id: (learners.length + 1).toString(),
+        code: generateLearnerCode(learner.school),
+    };
     setLearners([...learners, newLearner]);
     setIsFormDialogOpen(false);
   };
@@ -149,15 +160,19 @@ export default function LearnerEnrollmentPage() {
         const newLearners = lines.map(line => {
             const [name, dob, gender, className, guardian, district, school] = line.split(',');
             return { name, dob, gender, className, guardian, district, school };
-        }).filter(l => l.name); // Filter out empty lines
+        }).filter(l => l.name && l.gender && l.school); // Filter out empty/invalid lines
 
         try {
-            const result = await addLearners(newLearners as Omit<Learner, 'id'>[]);
+            const result = await addLearners(newLearners as Omit<Learner, 'id' | 'code'>[]);
             if (result.type === 'success') {
                 toast({ title: 'Success', description: result.message });
                 // Note: In a real app, you would refetch learners here.
                 // For this mock version, we will manually add them to see the effect.
-                const learnersToAdd = newLearners.map((learner, i) => ({ ...learner, id: (learners.length + i + 1).toString() }))
+                const learnersToAdd = newLearners.map((learner, i) => ({ 
+                    ...learner, 
+                    id: (learners.length + i + 1).toString(),
+                    code: generateLearnerCode(learner.school),
+                }))
                 setLearners(prev => [...prev, ...learnersToAdd as Learner[]]);
             }
         } catch (error) {
@@ -282,12 +297,11 @@ export default function LearnerEnrollmentPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Gender</TableHead>
                     <TableHead className="hidden sm:table-cell">Date of Birth</TableHead>
-                    <TableHead>District</TableHead>
                     <TableHead>School</TableHead>
-                    <TableHead className="hidden md:table-cell">Class</TableHead>
                     <TableHead>
                         <span className="sr-only">Actions</span>
                     </TableHead>
@@ -296,12 +310,11 @@ export default function LearnerEnrollmentPage() {
                 <TableBody>
                     {paginatedLearners.map((learner) => (
                     <TableRow key={learner.id}>
+                        <TableCell>{learner.code}</TableCell>
                         <TableCell className="font-medium">{learner.name}</TableCell>
                         <TableCell>{learner.gender}</TableCell>
                         <TableCell className="hidden sm:table-cell">{learner.dob}</TableCell>
-                        <TableCell>{learner.district}</TableCell>
                         <TableCell>{learner.school}</TableCell>
-                        <TableCell className="hidden md:table-cell">{learner.className}</TableCell>
                         <TableCell>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -362,6 +375,10 @@ export default function LearnerEnrollmentPage() {
                                 <CardTitle className="text-lg">Learner Details</CardTitle>
                             </CardHeader>
                             <CardContent className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-1">
+                                    <Label className="text-muted-foreground">Code</Label>
+                                    <div>{viewingLearner.code}</div>
+                                </div>
                                 <div className="grid gap-1">
                                     <Label className="text-muted-foreground">Name</Label>
                                     <div>{viewingLearner.name}</div>

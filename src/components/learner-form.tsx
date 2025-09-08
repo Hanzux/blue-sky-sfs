@@ -19,6 +19,7 @@ import { initialSchools, type Learner } from '@/lib/data';
 
 
 const learnerSchema = z.object({
+  code: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
   dob: z.string().min(1, 'Date of Birth is required'),
   gender: z.enum(['Male', 'Female']),
@@ -68,6 +69,21 @@ export function LearnerForm({ onSubmit, learner }: LearnerFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {learner && (
+            <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Learner Code</FormLabel>
+                <FormControl>
+                    <Input {...field} disabled />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        )}
         <FormField
           control={form.control}
           name="name"

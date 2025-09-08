@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from "next/cache";
@@ -7,13 +8,16 @@ import { initialLearners, type Learner } from "@/lib/data";
 let learners: Learner[] = [...initialLearners];
 let nextId = learners.length + 1;
 
-export async function addLearners(newLearners: Omit<Learner, 'id'>[]) {
+export async function addLearners(newLearners: Omit<Learner, 'id' | 'code'>[]) {
     const learnersToAdd = newLearners.map(learner => ({
         ...learner,
-        id: (nextId++).toString()
+        id: (nextId++).toString(),
+        code: 'imported' // code will be generated on client
     }));
 
-    learners = [...learners, ...learnersToAdd];
+    // In a real app, you'd persist this to a DB
+    // learners = [...learners, ...learnersToAdd];
+
     revalidatePath('/dashboard/learner-enrollment');
     
     return {
