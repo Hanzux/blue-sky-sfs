@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ const ITEMS_PER_PAGE = 5;
 const MOCK_USER_ROLE = 'System Admin'; 
 
 export function AuditTrail() {
+    const pathname = usePathname();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -21,20 +23,25 @@ export function AuditTrail() {
         // Simulate checking the user's role.
         // Replace this with actual role checking from your auth provider.
         if (MOCK_USER_ROLE === 'System Admin') {
-            setLogs(initialAuditLogs);
             setIsAdmin(true);
         }
     }, []);
 
+    const filteredLogs = useMemo(() => {
+        if (!isAdmin) return [];
+        // Filter logs to only show entries relevant to the current page
+        return initialAuditLogs.filter(log => log.page === pathname);
+    }, [pathname, isAdmin]);
+
     const paginatedLogs = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const endIndex = startIndex + ITEMS_PER_PAGE;
-        return logs.slice(startIndex, endIndex);
-    }, [logs, currentPage]);
+        return filteredLogs.slice(startIndex, endIndex);
+    }, [filteredLogs, currentPage]);
 
-    const totalPages = Math.ceil(logs.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
 
-    if (!isAdmin) {
+    if (!isAdmin || paginatedLogs.length === 0) {
         return null;
     }
 
@@ -42,7 +49,7 @@ export function AuditTrail() {
         <Card className="w-full mt-8">
             <CardHeader>
                 <CardTitle>Audit Trails</CardTitle>
-                <CardDescription>A log of recent activities across the system.</CardDescription>
+                <CardDescription>A log of recent activities on this page.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="overflow-x-auto">
@@ -52,12 +59,11 @@ export function AuditTrail() {
                                 <TableHead>Timestamp</TableHead>
                                 <TableHead>User</TableHead>
                                 <TableHead>Action</TableHead>
-                                <TableHead>Page</TableHead>
                                 <TableHead>Details</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paginatedLogs.length > 0 ? paginatedLogs.map((log) => (
+                            {paginatedLogs.map((log) => (
                                 <TableRow key={log.id}>
                                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                                         {new Date(log.timestamp).toLocaleString()}
@@ -67,16 +73,9 @@ export function AuditTrail() {
                                         <Badge variant="secondary">{log.userRole}</Badge>
                                     </TableCell>
                                     <TableCell>{log.action}</TableCell>
-                                    <TableCell className="text-muted-foreground">{log.page}</TableCell>
                                     <TableCell>{log.details}</TableCell>
                                 </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        No audit logs found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
+                            ))}
                         </TableBody>
                     </Table>
                 </div>
