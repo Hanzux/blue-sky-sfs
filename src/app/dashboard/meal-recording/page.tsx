@@ -278,7 +278,10 @@ export default function MealRecordingPage() {
     setCurrentPage(1);
   }
   
-  const allSelected = filteredLearners.length > 0 && Object.keys(mealRecords).length > 0 && Object.values(mealRecords).every(r => r);
+  const allSelected = useMemo(() => {
+    if (filteredLearners.length === 0) return false;
+    return filteredLearners.every(learner => mealRecords[learner.id]);
+  }, [mealRecords, filteredLearners]);
 
 
   return (
@@ -398,6 +401,7 @@ export default function MealRecordingPage() {
                       checked={allSelected}
                       onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                       aria-label="Select all learners"
+                      disabled={filteredLearners.length === 0}
                     />
                     <span>Served Meal</span>
                   </TableHead>
