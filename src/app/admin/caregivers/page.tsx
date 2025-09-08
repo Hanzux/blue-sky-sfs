@@ -1,6 +1,7 @@
 
 'use client';
-import { useState, useEffect, useActionState, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -126,15 +127,16 @@ export default function CaregiverManagementPage() {
   }, []);
 
   useEffect(() => {
-    // Generate a stable random number on mount for "New This Month"
     const newThisMonth = Math.floor(Math.random() * 3 + 1);
 
-    setCaregiverMetrics({
-      totalCaregivers: caregivers.length,
-      linkedLearners: Math.floor(caregivers.length * 1.8),
-      linkedCaregivers: Math.floor(caregivers.length * 0.9),
-      newThisMonth: newThisMonth
-    });
+    if (caregivers.length > 0) {
+        setCaregiverMetrics({
+            totalCaregivers: caregivers.length,
+            linkedLearners: Math.floor(caregivers.length * 1.8),
+            linkedCaregivers: Math.floor(caregivers.length * 0.9),
+            newThisMonth: newThisMonth,
+        });
+    }
   }, [caregivers]);
   
   const handleActionState = (state: any, action: string, detailsFn: (state: any) => string) => {
