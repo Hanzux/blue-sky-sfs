@@ -29,7 +29,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding, Download, Upload, FileDown } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding, Download, Upload, FileDown, FileText } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -195,6 +195,38 @@ export default function LearnerEnrollmentPage() {
     event.target.value = ''; // Reset file input
   }
 
+  const handleExportTableToPdf = () => {
+    const doc = new jsPDF();
+    const tableColumns = ["Code", "Name", "Gender", "Date of Birth", "School", "District"];
+    const tableRows = filteredLearners.map(learner => [
+      learner.code,
+      learner.name,
+      learner.gender,
+      learner.dob,
+      learner.school,
+      learner.district,
+    ]);
+
+    let title = "Learner Enrollment Report";
+    if (filterSchool !== 'All') {
+        title += ` for ${filterSchool}`;
+    } else if (filterDistrict !== 'All') {
+        title += ` for ${filterDistrict} District`;
+    }
+
+    doc.setFontSize(18);
+    doc.text(title, 14, 22);
+    
+    (doc as any).autoTable({
+        startY: 30,
+        head: [tableColumns],
+        body: tableRows,
+    });
+    
+    doc.save('learner_enrollment.pdf');
+    addAuditLog({ action: 'Learner Data Exported', details: `Exported filtered learner list as PDF.` });
+  }
+
   const handleExportToPdf = (learner: Learner) => {
     const doc = new jsPDF();
 
@@ -305,7 +337,7 @@ export default function LearnerEnrollmentPage() {
                     <CardTitle>Learner Enrollment</CardTitle>
                     <CardDescription>Manage and enroll new learners into the system.</CardDescription>
                 </div>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 flex-wrap justify-end'>
                     <input type="file" ref={fileInputRef} className="hidden" accept=".csv" onChange={handleFileChange} />
                      <Button variant="outline" onClick={handleImportClick}>
                         <Upload className="mr-2 h-4 w-4" /> Import
@@ -314,6 +346,9 @@ export default function LearnerEnrollmentPage() {
                         <a href="/learner_template.csv" download>
                            <Download className="mr-2 h-4 w-4" /> Template
                         </a>
+                    </Button>
+                    <Button variant="outline" onClick={handleExportTableToPdf} disabled={filteredLearners.length === 0}>
+                        <FileText className="mr-2 h-4 w-4" /> Export to PDF
                     </Button>
                     <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
                         <DialogTrigger asChild>
@@ -539,3 +574,4 @@ export default function LearnerEnrollmentPage() {
     </div>
   );
 }
+
