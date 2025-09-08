@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -26,18 +26,22 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding, Download, Upload } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { addLearners } from './actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
 
 export default function LearnerEnrollmentPage() {
+  const { toast } = useToast();
   const [learners, setLearners] = useState<Learner[]>(initialLearners);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -46,6 +50,7 @@ export default function LearnerEnrollmentPage() {
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -129,6 +134,40 @@ export default function LearnerEnrollmentPage() {
     setIsFormDialogOpen(open);
   }
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').slice(1); // Skip header
+        const newLearners = lines.map(line => {
+            const [name, dob, gender, className, guardian, district, school] = line.split(',');
+            return { name, dob, gender, className, guardian, district, school };
+        }).filter(l => l.name); // Filter out empty lines
+
+        try {
+            const result = await addLearners(newLearners as Omit<Learner, 'id'>[]);
+            if (result.type === 'success') {
+                toast({ title: 'Success', description: result.message });
+                // Note: In a real app, you would refetch learners here.
+                // For this mock version, we will manually add them to see the effect.
+                const learnersToAdd = newLearners.map((learner, i) => ({ ...learner, id: (learners.length + i + 1).toString() }))
+                setLearners(prev => [...prev, ...learnersToAdd as Learner[]]);
+            }
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Error', description: 'Failed to import learners.'})
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset file input
+  }
+
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-6xl space-y-6">
@@ -179,28 +218,39 @@ export default function LearnerEnrollmentPage() {
 
         <Card className="w-full">
         <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
                 <div>
                     <CardTitle>Learner Enrollment</CardTitle>
                     <CardDescription>Manage and enroll new learners into the system.</CardDescription>
                 </div>
-                <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <PlusCircle className="mr-2" />
-                            New Learner
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>{editingLearner ? 'Edit Learner' : 'Enroll New Learner'}</DialogTitle>
-                        </DialogHeader>
-                        <LearnerForm 
-                            onSubmit={editingLearner ? handleUpdateLearner : handleAddLearner} 
-                            learner={editingLearner}
-                        />
-                    </DialogContent>
-                </Dialog>
+                <div className='flex gap-2'>
+                    <input type="file" ref={fileInputRef} className="hidden" accept=".csv" onChange={handleFileChange} />
+                     <Button variant="outline" onClick={handleImportClick}>
+                        <Upload className="mr-2 h-4 w-4" /> Import
+                    </Button>
+                     <Button variant="outline" asChild>
+                        <a href="/learner_template.csv" download>
+                           <Download className="mr-2 h-4 w-4" /> Template
+                        </a>
+                    </Button>
+                    <Dialog open={isFormDialogOpen} onOpenChange={handleFormDialogClose}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2" />
+                                New Learner
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{editingLearner ? 'Edit Learner' : 'Enroll New Learner'}</DialogTitle>
+                            </DialogHeader>
+                            <LearnerForm 
+                                onSubmit={editingLearner ? handleUpdateLearner : handleAddLearner} 
+                                learner={editingLearner}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
@@ -397,7 +447,3 @@ export default function LearnerEnrollmentPage() {
     </div>
   );
 }
-
-    
-
-    
