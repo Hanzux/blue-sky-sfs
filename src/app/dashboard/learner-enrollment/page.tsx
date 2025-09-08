@@ -430,7 +430,7 @@ export default function LearnerEnrollmentPage() {
 
         {/* View Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-            <DialogContent className="sm:max-w-4xl">
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>View Learner</DialogTitle>
                     <DialogDescription>Details for {viewingLearner?.name}.</DialogDescription>
