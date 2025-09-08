@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   CalendarCheck,
@@ -59,6 +59,13 @@ export function Dashboard() {
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
 
+  const [dashboardMetrics, setDashboardMetrics] = useState({
+      totalLearners: 0,
+      attendanceRate: 0,
+      mealsServed: 0,
+      lowStockItems: [] as typeof initialFoodItems,
+  });
+
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
       return ["All", ...initialSchools.map(s => s.name)];
@@ -89,7 +96,7 @@ export function Dashboard() {
     return { learners, foodItems };
   }, [filterDistrict, filterSchool]);
 
-  const dashboardMetrics = useMemo(() => {
+  useEffect(() => {
     const totalLearners = filteredData.learners.length;
     const lowStockItems = filteredData.foodItems.filter(item => item.stock < LOW_STOCK_THRESHOLD);
     
@@ -98,13 +105,13 @@ export function Dashboard() {
     const attendanceRate = isFiltered ? (Math.random() * 5 + 90).toFixed(1) : 92.8;
     const mealsServed = isFiltered ? Math.floor(Math.random() * 500 + 2000) : 2431;
 
-    return {
+    setDashboardMetrics({
       totalLearners,
       attendanceRate: Number(attendanceRate),
       mealsServed,
       lowStockItems,
-    };
-  }, [filteredData]);
+    });
+  }, [filteredData, filterDistrict, filterSchool]);
 
   // Simulate chart data changing based on filters for a more dynamic feel
   const enrollmentData = useMemo(() => {

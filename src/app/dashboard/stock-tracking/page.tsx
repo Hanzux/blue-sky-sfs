@@ -187,7 +187,7 @@ export default function StockTrackingPage() {
             <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>District</Label>
-                  <Select value={filterDistrict} onValuechange={handleDistrictChange}>
+                  <Select value={filterDistrict} onValueChange={handleDistrictChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select District" />
                     </SelectTrigger>

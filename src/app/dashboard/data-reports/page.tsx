@@ -66,26 +66,42 @@ export default function DataReportsPage() {
             case 'attendance':
                 headers = ['Learner Name', 'Gender', 'Class', 'School', 'District', 'Status'];
                 data = learners.map(l => ({ 
-                    ...l, 
+                    name: l.name,
+                    gender: l.gender,
+                    className: l.className,
+                    school: l.school,
+                    district: l.district,
                     status: Math.random() > 0.1 ? 'Present' : 'Absent' 
                 }));
                 break;
             case 'meals':
                 headers = ['Learner Name', 'Gender', 'Class', 'School', 'Breakfast', 'Lunch'];
                 data = learners.map(l => ({ 
-                    ...l, 
+                    name: l.name,
+                    gender: l.gender,
+                    className: l.className,
+                    school: l.school,
                     breakfast: Math.random() > 0.05 ? 'Served' : 'Not Served',
                     lunch: Math.random() > 0.02 ? 'Served' : 'Not Served'
                 }));
                 break;
             case 'stock':
                 headers = ['Item Name', 'Category', 'Unit', 'Stock', 'School', 'District'];
-                data = foodItems;
+                data = foodItems.map(item => ({
+                    name: item.name,
+                    category: item.category,
+                    unit: item.unit,
+                    stock: item.stock,
+                    school: item.school,
+                    district: item.district,
+                }));
                 break;
             case 'trends':
                 headers = ['Learner Name', 'Gender', 'Class', 'Attendance Rate (%)', 'Meals Served (%)'];
                 data = learners.map(l => ({
-                    ...l,
+                    name: l.name,
+                    gender: l.gender,
+                    className: l.className,
                     attendanceRate: (Math.random() * 15 + 85).toFixed(1),
                     mealsServed: (Math.random() * 10 + 90).toFixed(1),
                 }));
@@ -117,7 +133,7 @@ export default function DataReportsPage() {
         (doc as any).autoTable({
             startY: 35,
             head: [headers],
-            body: data.map(row => headers.map(header => row[header.toLowerCase().replace(/ /g, '')] ?? row[header.toLowerCase().replace(/ /g, '_')] ?? row[Object.keys(row).find(k => k.toLowerCase() === header.toLowerCase().replace(/ /g, '')) as any] ?? '')),
+            body: data.map(row => Object.values(row)),
         });
 
         doc.save(`${reportType}_report.pdf`);
@@ -178,10 +194,9 @@ export default function DataReportsPage() {
                             <TableBody>
                                 {previewData.map((row, rowIndex) => (
                                     <TableRow key={rowIndex}>
-                                        {previewHeaders.map(header => (
-                                            <TableCell key={header}>
-                                                {/* A bit of magic to find the right key, ignores case and replaces space with nothing or underscore */}
-                                                {row[header.toLowerCase().replace(/ /g, '')] ?? row[header.toLowerCase().replace(/ /g, '_')] ?? row[Object.keys(row).find(k => k.toLowerCase() === header.toLowerCase().replace(/ /g, '')) as any] ?? '-'}
+                                        {Object.values(row).map((cell: any, cellIndex: number) => (
+                                            <TableCell key={`${rowIndex}-${cellIndex}`}>
+                                                {cell}
                                             </TableCell>
                                         ))}
                                     </TableRow>
