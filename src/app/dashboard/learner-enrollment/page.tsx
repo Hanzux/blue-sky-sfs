@@ -26,7 +26,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -62,6 +62,23 @@ export default function LearnerEnrollmentPage() {
     });
   }, [learners, filterDistrict, filterSchool]);
   
+  const learnerMetrics = useMemo(() => {
+    const totalLearners = filteredLearners.length;
+    const maleLearners = filteredLearners.filter(l => l.gender === 'Male').length;
+    const femaleLearners = totalLearners - maleLearners;
+    const genderRatio = totalLearners > 0 ? (maleLearners / totalLearners) * 100 : 0;
+    const schools = new Set(filteredLearners.map(l => l.school));
+    const districts = new Set(filteredLearners.map(l => l.district));
+    return {
+        totalLearners,
+        maleLearners,
+        femaleLearners,
+        genderRatio,
+        schoolCount: schools.size,
+        districtCount: districts.size
+    }
+  }, [filteredLearners]);
+
   const paginatedLearners = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -114,7 +131,53 @@ export default function LearnerEnrollmentPage() {
 
   return (
     <div className="flex justify-center">
-        <Card className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl space-y-6">
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Learners</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{learnerMetrics.totalLearners}</div>
+                    <p className="text-xs text-muted-foreground">Total enrolled learners</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Gender Distribution</CardTitle>
+                    <PersonStanding className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{learnerMetrics.maleLearners} Male / {learnerMetrics.femaleLearners} Female</div>
+                    <Progress value={learnerMetrics.genderRatio} className="h-2 mt-2" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Schools</CardTitle>
+                    <School className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{learnerMetrics.schoolCount}</div>
+                    <p className="text-xs text-muted-foreground">Total schools with enrollments</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Districts</CardTitle>
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{learnerMetrics.districtCount}</div>
+                     <p className="text-xs text-muted-foreground">Total districts covered</p>
+                </CardContent>
+            </Card>
+        </div>
+
+
+        <Card className="w-full">
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
@@ -330,8 +393,11 @@ export default function LearnerEnrollmentPage() {
                 )}
             </DialogContent>
         </Dialog>
+        </div>
     </div>
   );
 }
+
+    
 
     
