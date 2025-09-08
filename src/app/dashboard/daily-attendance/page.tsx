@@ -67,6 +67,9 @@ export default function DailyAttendancePage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewingRecord, setViewingRecord] = useState<SavedAttendance | null>(null);
 
+  const [savedFilterDistrict, setSavedFilterDistrict] = useState<string>('All');
+  const [savedFilterSchool, setSavedFilterSchool] = useState<string>('All');
+
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
       return ["All", ...initialSchools.map(s => s.name)];
@@ -192,13 +195,41 @@ export default function DailyAttendancePage() {
     addAuditLog({ action: 'Attendance Exported', details: `Exported PDF for ${record.class} at ${record.school}` });
   }
 
+  const filteredSavedAttendances = useMemo(() => {
+    return savedAttendances.filter(record => {
+      const districtMatch = savedFilterDistrict === 'All' || record.district === savedFilterDistrict;
+      const schoolMatch = savedFilterSchool === 'All' || record.school === savedFilterSchool;
+      return districtMatch && schoolMatch;
+    });
+  }, [savedAttendances, savedFilterDistrict, savedFilterSchool]);
+  
+
   const paginatedSavedAttendances = useMemo(() => {
     const startIndex = (currentPage - 1) * SAVED_ITEMS_PER_PAGE;
     const endIndex = startIndex + SAVED_ITEMS_PER_PAGE;
-    return savedAttendances.slice(startIndex, endIndex);
-  }, [savedAttendances, currentPage]);
+    return filteredSavedAttendances.slice(startIndex, endIndex);
+  }, [filteredSavedAttendances, currentPage]);
 
-  const totalPages = Math.ceil(savedAttendances.length / SAVED_ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredSavedAttendances.length / SAVED_ITEMS_PER_PAGE);
+
+  const availableSavedSchools = useMemo(() => {
+    if (savedFilterDistrict === 'All') {
+      return ["All", ...new Set(savedAttendances.map(s => s.school))];
+    }
+    const schoolsInDistrict = [...new Set(savedAttendances.filter(s => s.district === savedFilterDistrict).map(s => s.school))];
+    return ["All", ...schoolsInDistrict];
+  }, [savedFilterDistrict, savedAttendances]);
+
+  const handleSavedDistrictChange = (district: string) => {
+    setSavedFilterDistrict(district);
+    setSavedFilterSchool('All');
+    setCurrentPage(1);
+  }
+
+  const handleSavedSchoolChange = (school: string) => {
+    setSavedFilterSchool(school);
+    setCurrentPage(1);
+  }
 
   return (
     <div className="flex justify-center">
@@ -357,6 +388,30 @@ export default function DailyAttendancePage() {
                 <CardHeader>
                     <CardTitle>Saved Attendance Records</CardTitle>
                     <CardDescription>View and export previously saved attendance sheets.</CardDescription>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-2">
+                            <Label>Filter by District</Label>
+                            <Select value={savedFilterDistrict} onValueChange={handleSavedDistrictChange}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select District" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {["All", ...new Set(savedAttendances.map(r => r.district))].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Filter by School</Label>
+                            <Select value={savedFilterSchool} onValueChange={handleSavedSchoolChange} disabled={savedFilterDistrict === 'All'}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select School" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                {availableSavedSchools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -460,5 +515,3 @@ export default function DailyAttendancePage() {
     </div>
   );
 }
-
-    
