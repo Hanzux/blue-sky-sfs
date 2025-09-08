@@ -1,4 +1,5 @@
 
+import { AuditTrail } from "@/components/audit-trail";
 import DashboardLayout from "../dashboard/layout";
 
 export default function AdminLayout({
@@ -9,6 +10,9 @@ export default function AdminLayout({
     return (
       <DashboardLayout>
         {children}
+        <div className="flex justify-center">
+            <AuditTrail />
+        </div>
       </DashboardLayout>
     );
   }

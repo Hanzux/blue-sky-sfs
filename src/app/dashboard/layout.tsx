@@ -9,6 +9,7 @@ import { navItems, adminNavItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { AuditTrail } from '@/components/audit-trail';
 
 export default function DashboardLayout({
   children,
@@ -27,6 +28,8 @@ export default function DashboardLayout({
 
     return pathname;
   }
+
+  const showAuditTrail = pathname !== '/dashboard';
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -67,6 +70,11 @@ export default function DashboardLayout({
             </Tabs>
           </div>
           {children}
+          {showAuditTrail && (
+            <div className="flex justify-center">
+                <AuditTrail />
+            </div>
+           )}
         </main>
       </div>
     </div>
