@@ -15,10 +15,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
+import { type FoodItem, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +26,7 @@ import { StockAdjustmentForm } from '@/components/stock-adjustment-form';
 import { adjustStock, getFoodItems } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Package, Package2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const LOW_STOCK_THRESHOLD = 30;
@@ -83,6 +83,19 @@ export default function StockTrackingPage() {
       return districtMatch && schoolMatch;
     });
   }, [foodItems, filterDistrict, filterSchool]);
+
+  const stockMetrics = useMemo(() => {
+    const totalItems = filteredFoodItems.length;
+    const totalQuantity = filteredFoodItems.reduce((sum, item) => sum + item.stock, 0);
+    const lowStockItemsCount = filteredFoodItems.filter(item => item.stock < LOW_STOCK_THRESHOLD).length;
+    
+    let mostStocked = null;
+    if(filteredFoodItems.length > 0) {
+        mostStocked = filteredFoodItems.reduce((max, item) => item.stock > max.stock ? item : max, filteredFoodItems[0]);
+    }
+
+    return { totalItems, totalQuantity, lowStockItemsCount, mostStocked };
+  }, [filteredFoodItems]);
   
   const paginatedFoodItems = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -117,7 +130,53 @@ export default function StockTrackingPage() {
 
   return (
     <div className="flex justify-center">
-        <Card className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Item Types</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stockMetrics.totalItems}</div>
+                    <p className="text-xs text-muted-foreground">Distinct food items in stock</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
+                    <Package2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stockMetrics.totalQuantity.toLocaleString()}</div>
+                     <p className="text-xs text-muted-foreground">Total units across all items</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold text-destructive">{stockMetrics.lowStockItemsCount}</div>
+                    <p className="text-xs text-muted-foreground">Items below threshold</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Most Stocked Item</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold truncate">{stockMetrics.mostStocked?.name || 'N/A'}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {stockMetrics.mostStocked ? `${stockMetrics.mostStocked.stock.toLocaleString()} units` : '-'}
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+
+        <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
@@ -128,7 +187,7 @@ export default function StockTrackingPage() {
             <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label>District</Label>
-                  <Select value={filterDistrict} onValueChange={handleDistrictChange}>
+                  <Select value={filterDistrict} onValuechange={handleDistrictChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select District" />
                     </SelectTrigger>
@@ -234,6 +293,7 @@ export default function StockTrackingPage() {
             )}
           </DialogContent>
         </Dialog>
+      </div>
     </div>
   );
 }
