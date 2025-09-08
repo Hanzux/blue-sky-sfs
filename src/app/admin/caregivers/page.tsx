@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, useActionState, useMemo } from 'react';
+import { useState, useEffect, useActionState, useMemo, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -55,8 +55,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { getCaregivers, createCaregiver, updateCaregiver, deleteCaregiver } from './actions';
-import { MoreHorizontal, PlusCircle, Users, UserPlus, Link, Users2 } from 'lucide-react';
+import { getCaregivers, createCaregiver, updateCaregiver, deleteCaregiver, importCaregivers } from './actions';
+import { MoreHorizontal, PlusCircle, Users, UserPlus, Link, Users2, Upload, Download } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 
@@ -93,12 +93,8 @@ export default function CaregiverManagementPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [caregiverMetrics, setCaregiverMetrics] = useState<CaregiverMetrics>({
-      totalCaregivers: 0,
-      linkedLearners: 0,
-      newThisMonth: 0,
-      linkedCaregivers: 0,
-  });
+  const [caregiverMetrics, setCaregiverMetrics] = useState<CaregiverMetrics | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateCaregiver, null);
@@ -112,7 +108,7 @@ export default function CaregiverManagementPage() {
     setLoading(true);
     try {
       const fetchedCaregivers = await getCaregivers();
-      setCaregivers(fetchedCaregivers);
+      setCaregivers(fetchedCaregivers.reverse());
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -129,12 +125,15 @@ export default function CaregiverManagementPage() {
 
   useEffect(() => {
     const totalCaregivers = caregivers.length;
-    // These are simulated metrics as we don't have the relational data
     const linkedLearners = Math.floor(totalCaregivers * 1.8);
-    const newThisMonth = Math.floor(Math.random() * 3 + 1);
     const linkedCaregivers = Math.floor(totalCaregivers * 0.9);
-
-    setCaregiverMetrics({ totalCaregivers, linkedLearners, newThisMonth, linkedCaregivers });
+    // Move random number generation to useEffect to avoid hydration errors
+    setCaregiverMetrics({
+        totalCaregivers,
+        linkedLearners,
+        newThisMonth: Math.floor(Math.random() * 3 + 1),
+        linkedCaregivers,
+    });
   }, [caregivers]);
   
   const handleActionState = (state: any, successMessage: string, closeDialogs: () => void) => {
@@ -192,6 +191,37 @@ export default function CaregiverManagementPage() {
     setSelectedCaregiver(caregiver);
     setIsDeleteDialogOpen(true);
   };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').slice(1); // Skip header
+        const newCaregivers = lines.map(line => {
+            const [name, email, phone] = line.split(',');
+            return { name, email, phone };
+        }).filter(c => c.name && c.email && c.phone); // Filter out empty lines
+
+        try {
+            const result = await importCaregivers(newCaregivers);
+            if (result.type === 'success') {
+                toast({ title: 'Success', description: result.message });
+                fetchCaregivers(); // Refetch data
+            }
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Error', description: 'Failed to import caregivers.'})
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset file input
+  }
   
   const formAction = selectedCaregiver ? updateFormAction : createFormAction;
   const isPending = selectedCaregiver ? isUpdatePending : isCreatePending;
@@ -213,7 +243,7 @@ export default function CaregiverManagementPage() {
                     <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{caregiverMetrics.totalCaregivers}</div>
+                    <div className="text-2xl font-bold">{caregiverMetrics?.totalCaregivers ?? <Skeleton className="h-8 w-1/4" />}</div>
                     <p className="text-xs text-muted-foreground">Total registered caregivers</p>
                 </CardContent>
             </Card>
@@ -223,7 +253,7 @@ export default function CaregiverManagementPage() {
                     <Link className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{caregiverMetrics.linkedCaregivers}</div>
+                    <div className="text-2xl font-bold">{caregiverMetrics?.linkedCaregivers ?? <Skeleton className="h-8 w-1/4" />}</div>
                     <p className="text-xs text-muted-foreground">Associated with a learner</p>
                 </CardContent>
             </Card>
@@ -233,7 +263,7 @@ export default function CaregiverManagementPage() {
                     <UserPlus className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">+{caregiverMetrics.newThisMonth}</div>
+                    <div className="text-2xl font-bold">+{caregiverMetrics?.newThisMonth ?? <Skeleton className="h-8 w-1/4" />}</div>
                     <p className="text-xs text-muted-foreground">Newly added caregivers</p>
                 </CardContent>
             </Card>
@@ -243,7 +273,7 @@ export default function CaregiverManagementPage() {
                     <Users2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{caregiverMetrics.linkedLearners}</div>
+                    <div className="text-2xl font-bold">{caregiverMetrics?.linkedLearners ?? <Skeleton className="h-8 w-1/4" />}</div>
                      <p className="text-xs text-muted-foreground">Total learners with caregivers</p>
                 </CardContent>
             </Card>
@@ -259,71 +289,82 @@ export default function CaregiverManagementPage() {
                 Manage caregivers for learners in the system.
               </CardDescription>
             </div>
-            <Dialog
-              open={isFormDialogOpen}
-              onOpenChange={setIsFormDialogOpen}
-            >
-              <DialogTrigger asChild>
-                <Button onClick={handleNewClick}>
-                  <PlusCircle className="mr-2" /> New Caregiver
+            <div className="flex gap-2">
+               <input type="file" ref={fileInputRef} className="hidden" accept=".csv" onChange={handleFileChange} />
+                <Button variant="outline" onClick={handleImportClick}>
+                    <Upload className="mr-2 h-4 w-4" /> Import
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{selectedCaregiver ? 'Edit Caregiver' : 'Create New Caregiver'}</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form action={formAction} className="space-y-4">
-                    {selectedCaregiver && <input type="hidden" {...form.register('id')} />}
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Full Name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="email@example.com"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input placeholder="123-456-7890" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? (selectedCaregiver ? 'Updating...' : 'Creating...') : (selectedCaregiver ? 'Update Caregiver' : 'Create Caregiver')}
+                <Button variant="outline" asChild>
+                    <a href="/caregiver_template.csv" download>
+                        <Download className="mr-2 h-4 w-4" /> Template
+                    </a>
+                </Button>
+                <Dialog
+                open={isFormDialogOpen}
+                onOpenChange={setIsFormDialogOpen}
+                >
+                <DialogTrigger asChild>
+                    <Button onClick={handleNewClick}>
+                    <PlusCircle className="mr-2" /> New Caregiver
                     </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                    <DialogTitle>{selectedCaregiver ? 'Edit Caregiver' : 'Create New Caregiver'}</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                    <form action={formAction} className="space-y-4">
+                        {selectedCaregiver && <input type="hidden" {...form.register('id')} />}
+                        <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Full Name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input
+                                placeholder="email@example.com"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl>
+                                <Input placeholder="123-456-7890" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button type="submit" className="w-full" disabled={isPending}>
+                            {isPending ? (selectedCaregiver ? 'Updating...' : 'Creating...') : (selectedCaregiver ? 'Update Caregiver' : 'Create Caregiver')}
+                        </Button>
+                    </form>
+                    </Form>
+                </DialogContent>
+                </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

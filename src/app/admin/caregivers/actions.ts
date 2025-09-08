@@ -96,3 +96,18 @@ export async function deleteCaregiver(prevState: any, formData: FormData) {
         return { type: 'error', message: error.message };
     }
 }
+
+export async function importCaregivers(newCaregivers: Omit<z.infer<typeof caregiverSchema>, 'id'>[]) {
+    const caregiversToAdd = newCaregivers.map(caregiver => ({
+        ...caregiver,
+        id: (nextId++).toString()
+    }));
+
+    caregivers = [...caregivers, ...caregiversToAdd];
+    revalidatePath('/admin/caregivers');
+    
+    return {
+        type: 'success',
+        message: `${newCaregivers.length} caregivers imported successfully.`
+    }
+}
