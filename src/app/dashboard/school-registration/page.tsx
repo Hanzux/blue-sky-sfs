@@ -74,8 +74,13 @@ export default function SchoolRegistrationPage() {
     setCurrentPage(1);
   }, [filterDistrict]);
 
-  const handleAddSchool = (school: Omit<School, 'id'>) => {
-    const newSchool = { ...school, id: (schools.length + 1).toString() };
+  const handleAddSchool = (school: Omit<School, 'id' | 'code'>) => {
+    const prefix = school.district === 'Mt Darwin' ? 'MT' : 'MB';
+    const districtSchools = schools.filter(s => s.district === school.district);
+    const nextId = districtSchools.length + 1;
+    const code = `${prefix}${nextId.toString().padStart(3, '0')}`;
+    
+    const newSchool = { ...school, id: (schools.length + 1).toString(), code };
     setSchools([...schools, newSchool]);
     setIsFormDialogOpen(false);
   };
@@ -199,6 +204,7 @@ export default function SchoolRegistrationPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead className="hidden sm:table-cell">District</TableHead>
                     <TableHead className="hidden md:table-cell">Learners</TableHead>
@@ -210,6 +216,7 @@ export default function SchoolRegistrationPage() {
                 <TableBody>
                     {paginatedSchools.map((school) => (
                     <TableRow key={school.id}>
+                        <TableCell>{school.code}</TableCell>
                         <TableCell className="font-medium">{school.name}</TableCell>
                         <TableCell className="hidden sm:table-cell">{school.district}</TableCell>
                         <TableCell className="hidden md:table-cell">{school.learners}</TableCell>
@@ -268,6 +275,10 @@ export default function SchoolRegistrationPage() {
                 </DialogHeader>
                 {viewingSchool && (
                     <div className="grid gap-4 py-4">
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Code</Label>
+                            <div className="col-span-3">{viewingSchool.code}</div>
+                        </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label className="text-right">Name</Label>
                             <div className="col-span-3">{viewingSchool.name}</div>

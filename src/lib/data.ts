@@ -1,28 +1,30 @@
 
+
 export type School = {
   id: string;
-  name: string;
+  code: string;
+  name:string;
   district: string;
   learners: number;
 };
 
 export const initialSchools: School[] = [
-    { id: '1', name: 'Dotito Primary School', district: 'Mt Darwin', learners: 100 },
-    { id: '2', name: 'Kadohwata Primary School', district: 'Mt Darwin', learners: 100 },
-    { id: '3', name: 'Chiutsa primary school', district: 'Mt Darwin', learners: 100 },
-    { id: '4', name: 'Pachanza Primary School', district: 'Mt Darwin', learners: 100 },
-    { id: '5', name: 'Kajoto Primary School', district: 'Mt Darwin', learners: 100 },
-    { id: '6', name: 'Kazai primary school', district: 'Mt Darwin', learners: 100 },
-    { id: '7', name: 'Chiromo primary School', district: 'Mt Darwin', learners: 100 },
-    { id: '8', name: 'Kanyoka primary school', district: 'Mt Darwin', learners: 100 },
-    { id: '9', name: 'Mahuhwe Primary School', district: 'Mbire', learners: 100 },
-    { id: '10', name: 'Sangojena Primary School', district: 'Mbire', learners: 100 },
-    { id: '11', name: 'Bande Primary School', district: 'Mbire', learners: 100 },
-    { id: '12', name: 'Kasuwo Primary School', district: 'Mbire', learners: 100 },
-    { id: '13', name: 'Hambe Primary School', district: 'Mbire', learners: 100 },
-    { id: '14', name: 'Nyarutombo primary school', district: 'Mbire', learners: 100 },
-    { id: '15', name: 'Masomo Primary School', district: 'Mbire', learners: 100 },
-    { id: '16', name: 'Nyambudzi Primary School', district: 'Mbire', learners: 100 },
+    { id: '1', code: 'MT001', name: 'Dotito Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '2', code: 'MT002', name: 'Kadohwata Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '3', code: 'MT003', name: 'Chiutsa primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '4', code: 'MT004', name: 'Pachanza Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '5', code: 'MT005', name: 'Kajoto Primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '6', code: 'MT006', name: 'Kazai primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '7', code: 'MT007', name: 'Chiromo primary School', district: 'Mt Darwin', learners: 100 },
+    { id: '8', code: 'MT008', name: 'Kanyoka primary school', district: 'Mt Darwin', learners: 100 },
+    { id: '9', code: 'MB001', name: 'Mahuhwe Primary School', district: 'Mbire', learners: 100 },
+    { id: '10', code: 'MB002', name: 'Sangojena Primary School', district: 'Mbire', learners: 100 },
+    { id: '11', code: 'MB003', name: 'Bande Primary School', district: 'Mbire', learners: 100 },
+    { id: '12', code: 'MB004', name: 'Kasuwo Primary School', district: 'Mbire', learners: 100 },
+    { id: '13', code: 'MB005', name: 'Hambe Primary School', district: 'Mbire', learners: 100 },
+    { id: '14', code: 'MB006', name: 'Nyarutombo primary school', district: 'Mbire', learners: 100 },
+    { id: '15', code: 'MB007', name: 'Masomo Primary School', district: 'Mbire', learners: 100 },
+    { id: '16', code: 'MB008', name: 'Nyambudzi Primary School', district: 'Mbire', learners: 100 },
 ];
 
 export type Learner = {
