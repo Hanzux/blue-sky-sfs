@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useActionState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,22 +10,64 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { StockAdjustmentForm } from '@/components/stock-adjustment-form';
+import { adjustStock, getFoodItems } from './actions';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const LOW_STOCK_THRESHOLD = 30;
 const ITEMS_PER_PAGE = 5;
 
 export default function StockTrackingPage() {
-  const [foodItems] = useState<FoodItem[]>(initialFoodItems);
+  const { toast } = useToast();
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
+
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  
+  const [adjustState, adjustFormAction, isAdjustPending] = useActionState(adjustStock, null);
+
+  const fetchItems = async () => {
+    setLoading(true);
+    const items = await getFoodItems();
+    setFoodItems(items);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  useEffect(() => {
+    if (!adjustState) return;
+    if (adjustState.type === 'success') {
+        toast({ title: 'Success', description: adjustState.message });
+        setIsFormDialogOpen(false);
+        setSelectedItem(null);
+        fetchItems(); // Refetch data
+    } else if (adjustState.type === 'error') {
+        toast({ variant: 'destructive', title: 'Error', description: adjustState.message });
+    }
+  }, [adjustState, toast]);
+
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -60,6 +102,19 @@ export default function StockTrackingPage() {
     setFilterSchool('All');
   }
 
+  const handleAdjustClick = (item: FoodItem) => {
+    setSelectedItem(item);
+    setIsFormDialogOpen(true);
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setIsFormDialogOpen(open);
+    if (!open) {
+      setSelectedItem(null);
+    }
+  }
+
+
   return (
     <div className="flex justify-center">
         <Card className="w-full max-w-6xl">
@@ -67,7 +122,7 @@ export default function StockTrackingPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <CardTitle>Stock Tracking</CardTitle>
-                    <CardDescription>Monitor food item inventory levels across schools.</CardDescription>
+                    <CardDescription>Monitor and adjust food item inventory levels across schools.</CardDescription>
                 </div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -102,18 +157,25 @@ export default function StockTrackingPage() {
                     <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead className="hidden sm:table-cell">District</TableHead>
                     <TableHead className="hidden sm:table-cell">School</TableHead>
                     <TableHead>Unit</TableHead>
                     <TableHead className="text-right">Stock Level</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {paginatedFoodItems.map((item) => (
+                    {loading
+                     ? Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={6}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                    : paginatedFoodItems.map((item) => (
                     <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{item.district}</TableCell>
                         <TableCell className="hidden sm:table-cell">{item.school}</TableCell>
                         <TableCell>{item.unit}</TableCell>
                         <TableCell className="text-right">
@@ -121,6 +183,11 @@ export default function StockTrackingPage() {
                            {item.stock < LOW_STOCK_THRESHOLD && <Badge variant="destructive">Low Stock</Badge>}
                             <span>{item.stock}</span>
                            </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <Button variant="outline" size="sm" onClick={() => handleAdjustClick(item)}>
+                                Adjust Stock
+                            </Button>
                         </TableCell>
                     </TableRow>
                     ))}
@@ -152,8 +219,21 @@ export default function StockTrackingPage() {
             </div>
           </CardFooter>
         </Card>
+
+        <Dialog open={isFormDialogOpen} onOpenChange={handleDialogChange}>
+          <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Adjust Stock for {selectedItem?.name}</DialogTitle>
+            </DialogHeader>
+            {selectedItem && (
+                <StockAdjustmentForm
+                    foodItem={selectedItem}
+                    formAction={adjustFormAction}
+                    isPending={isAdjustPending}
+                />
+            )}
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }
-
-    
