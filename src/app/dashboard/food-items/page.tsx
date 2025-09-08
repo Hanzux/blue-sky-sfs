@@ -26,7 +26,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Package, Layers, Package2, Tag } from 'lucide-react';
 import { FoodItemForm } from '@/components/food-item-form';
 import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -59,6 +59,23 @@ export default function FoodItemsPage() {
       return districtMatch && schoolMatch;
     });
   }, [foodItems, filterDistrict, filterSchool]);
+
+  const foodItemMetrics = useMemo(() => {
+    const totalItems = filteredFoodItems.length;
+    const categories = new Set(filteredFoodItems.map(item => item.category));
+    const totalQuantity = filteredFoodItems.reduce((sum, item) => sum + item.stock, 0);
+    
+    let mostCommonCategory = 'N/A';
+    if (totalItems > 0) {
+        const categoryCounts = filteredFoodItems.reduce((acc, item) => {
+            acc[item.category] = (acc[item.category] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        mostCommonCategory = Object.entries(categoryCounts).sort((a,b) => b[1] - a[1])[0][0];
+    }
+    
+    return { totalItems, uniqueCategories: categories.size, totalQuantity, mostCommonCategory };
+  }, [filteredFoodItems]);
 
   const paginatedFoodItems = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -112,7 +129,55 @@ export default function FoodItemsPage() {
 
   return (
     <div className="flex justify-center">
-        <Card className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl space-y-6">
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Item Types</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{foodItemMetrics.totalItems}</div>
+                    <p className="text-xs text-muted-foreground">Distinct food items</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
+                    <Package2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{foodItemMetrics.totalQuantity.toLocaleString()}</div>
+                     <p className="text-xs text-muted-foreground">Total units in stock</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Unique Categories</CardTitle>
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{foodItemMetrics.uniqueCategories}</div>
+                    <p className="text-xs text-muted-foreground">Different item categories</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Top Category</CardTitle>
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold truncate">{foodItemMetrics.mostCommonCategory}</div>
+                    <p className="text-xs text-muted-foreground">
+                        Most frequently occurring category
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+
+
+        <Card>
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
@@ -270,6 +335,7 @@ export default function FoodItemsPage() {
                 )}
             </DialogContent>
         </Dialog>
+    </div>
     </div>
   );
 }
