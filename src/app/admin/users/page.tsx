@@ -26,6 +26,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -62,8 +63,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { getUsers, createUser, updateUser, deleteUser } from './actions';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { getUsers, createUser, updateUser, deleteUser, resetPassword } from './actions';
+import { MoreHorizontal, PlusCircle, KeyRound } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -94,6 +95,13 @@ const updateUserSchema = z.object({
 });
 type UpdateUserFormValues = z.infer<typeof updateUserSchema>;
 
+const resetPasswordSchema = z.object({
+    uid: z.string(),
+    newPassword: z.string().min(6, { message: 'New password must be at least 6 characters.'}),
+});
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+
 type User = {
   uid: string;
   name?: string;
@@ -112,12 +120,14 @@ export default function UserManagementPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createUser, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateUser, null);
   const [deleteState, deleteFormAction, isDeletePending] = useActionState(deleteUser, null);
+  const [resetState, resetFormAction, isResetPending] = useActionState(resetPassword, null);
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -125,6 +135,11 @@ export default function UserManagementPage() {
   });
   const updateForm = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema),
+  });
+
+  const resetPasswordForm = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { uid: '', newPassword: ''},
   });
 
   const fetchUsers = async () => {
@@ -176,6 +191,10 @@ export default function UserManagementPage() {
      handleActionState(deleteState, 'User deleted successfully.', () => setIsDeleteDialogOpen(false));
    }, [deleteState]);
 
+   useEffect(() => {
+    handleActionState(resetState, 'Password reset successfully.', () => setIsResetPasswordDialogOpen(false));
+  }, [resetState]);
+
   const handleViewClick = (user: User) => {
     setSelectedUser(user);
     setIsViewDialogOpen(true);
@@ -195,6 +214,12 @@ export default function UserManagementPage() {
     setSelectedUser(user);
     setIsDeleteDialogOpen(true);
   };
+
+  const handleResetPasswordClick = (user: User) => {
+    setSelectedUser(user);
+    resetPasswordForm.reset({ uid: user.uid, newPassword: '' });
+    setIsResetPasswordDialogOpen(true);
+  }
   
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -381,6 +406,13 @@ export default function UserManagementPage() {
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                onClick={() => handleResetPasswordClick(user)}
+                              >
+                                <KeyRound className='mr-2 h-4 w-4'/>
+                                Reset Password
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
                                 onClick={() => handleDeleteClick(user)}
                                 className="text-red-600"
                               >
@@ -499,6 +531,39 @@ export default function UserManagementPage() {
         </DialogContent>
       </Dialog>
 
+    {/* Reset Password Dialog */}
+    <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Reset password for {selectedUser?.name || selectedUser?.email}.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetPasswordForm}>
+            <form action={resetFormAction} className="space-y-4">
+                <input type="hidden" {...resetPasswordForm.register('uid')} />
+                 <FormField
+                    control={resetPasswordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>New Password</FormLabel>
+                        <FormControl>
+                        <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={isResetPending}>
+                    {isResetPending ? 'Resetting...' : 'Reset Password'}
+                </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Alert Dialog */}
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -528,5 +593,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
-    

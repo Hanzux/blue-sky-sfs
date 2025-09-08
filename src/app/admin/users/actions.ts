@@ -1,3 +1,4 @@
+
 'use server';
 
 import { getAdminAuth } from '@/lib/firebase/server';
@@ -20,6 +21,11 @@ const updateUserSchema = z.object({
 
 const deleteUserSchema = z.object({
   uid: z.string(),
+});
+
+const resetPasswordSchema = z.object({
+    uid: z.string(),
+    newPassword: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
 // --- Server Actions ---
@@ -134,6 +140,26 @@ export async function deleteUser(prevState: any, formData: FormData) {
         await adminAuth.deleteUser(uid);
         revalidatePath('/admin/users');
         return { type: 'success', message: 'User deleted successfully.' };
+    } catch (error: any) {
+        return { type: 'error', message: error.message };
+    }
+}
+
+export async function resetPassword(prevState: any, formData: FormData) {
+    const adminAuth = await getAdminAuth();
+    if (!adminAuth) {
+        return { type: 'error', message: 'Firebase Admin SDK not initialized.' };
+    }
+    const validatedFields = resetPasswordSchema.safeParse(Object.fromEntries(formData));
+
+    if (!validatedFields.success) {
+        return { type: 'error', message: 'Invalid data provided for password reset.'};
+    }
+
+    const { uid, newPassword } = validatedFields.data;
+    try {
+        await adminAuth.updateUser(uid, { password: newPassword });
+        return { type: 'success', message: 'User password has been reset successfully.' };
     } catch (error: any) {
         return { type: 'error', message: error.message };
     }
