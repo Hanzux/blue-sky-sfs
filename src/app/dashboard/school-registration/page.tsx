@@ -26,7 +26,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, School, Building, Users, TrendingUp } from 'lucide-react';
 import { SchoolForm } from '@/components/school-form';
 import { initialSchools, type School } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -50,6 +50,17 @@ export default function SchoolRegistrationPage() {
     }
     return schools.filter(school => school.district === filterDistrict);
   }, [schools, filterDistrict]);
+
+  const schoolMetrics = useMemo(() => {
+    const totalSchools = filteredSchools.length;
+    const totalDistricts = new Set(filteredSchools.map(s => s.district)).size;
+    const totalLearners = filteredSchools.reduce((sum, school) => sum + school.learners, 0);
+    const topSchool = totalSchools > 0 
+      ? filteredSchools.reduce((max, school) => school.learners > max.learners ? school : max)
+      : null;
+    
+    return { totalSchools, totalDistricts, totalLearners, topSchool };
+  }, [filteredSchools]);
 
   const paginatedSchools = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -98,7 +109,53 @@ export default function SchoolRegistrationPage() {
 
   return (
     <div className="flex justify-center">
-        <Card className="w-full max-w-4xl">
+      <div className="w-full max-w-6xl space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Schools</CardTitle>
+                    <School className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{schoolMetrics.totalSchools}</div>
+                    <p className="text-xs text-muted-foreground">Registered schools</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Districts</CardTitle>
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{schoolMetrics.totalDistricts}</div>
+                     <p className="text-xs text-muted-foreground">Districts with schools</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Learners</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{schoolMetrics.totalLearners.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">Across all schools</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Top School</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold truncate">{schoolMetrics.topSchool?.name || 'N/A'}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {schoolMetrics.topSchool ? `${schoolMetrics.topSchool.learners.toLocaleString()} learners` : '-'}
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+
+        <Card className="w-full">
         <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
@@ -228,7 +285,10 @@ export default function SchoolRegistrationPage() {
             </DialogContent>
         </Dialog>
     </div>
+    </div>
   );
 }
+
+    
 
     
