@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useActionState } from 'react';
+import { useActionState } from 'react-dom';
 import {
   Table,
   TableBody,

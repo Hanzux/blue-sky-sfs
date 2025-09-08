@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useActionState } from 'react';
+import { useActionState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -98,6 +98,7 @@ export default function CaregiverManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [caregiverMetrics, setCaregiverMetrics] = useState<CaregiverMetrics | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newThisMonth, setNewThisMonth] = useState(0);
 
   const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
   const [updateState, updateFormAction, isUpdatePending] = useActionState(updateCaregiver, null);
@@ -124,11 +125,10 @@ export default function CaregiverManagementPage() {
 
   useEffect(() => {
     fetchCaregivers();
+    setNewThisMonth(Math.floor(Math.random() * 3 + 1));
   }, []);
 
   useEffect(() => {
-    const newThisMonth = Math.floor(Math.random() * 3 + 1);
-
     if (caregivers.length > 0) {
         setCaregiverMetrics({
             totalCaregivers: caregivers.length,
@@ -137,7 +137,7 @@ export default function CaregiverManagementPage() {
             newThisMonth: newThisMonth,
         });
     }
-  }, [caregivers]);
+  }, [caregivers, newThisMonth]);
   
   const handleActionState = (state: any, action: string, detailsFn: (state: any) => string) => {
     if (!state) return;
