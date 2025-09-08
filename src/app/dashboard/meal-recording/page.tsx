@@ -19,6 +19,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
+import { Users, UtensilsCrossed, Utensils, UserX } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const mealTypes = ['Breakfast', 'Lunch', 'Snack'];
@@ -107,22 +110,67 @@ export default function MealRecordingPage() {
     });
   }
 
-  const getMealStats = () => {
+  const stats = useMemo(() => {
     const total = filteredLearners.length;
-    if (total === 0) return { served: 0, total: 0, percentage: '0.00' };
+    if (total === 0) return { served: 0, notServed: 0, total: 0, percentage: 0 };
 
     const servedCount = Object.values(mealRecords).filter(served => served).length;
-    const percentage = total > 0 ? ((servedCount / total) * 100).toFixed(2) : '0.00';
-    return { served: servedCount, total, percentage };
-  }
+    const notServedCount = total - servedCount;
+    const percentage = total > 0 ? (servedCount / total) * 100 : 0;
+    return { served: servedCount, notServed: notServedCount, total, percentage };
+  }, [mealRecords, filteredLearners]);
   
-  const stats = getMealStats();
   const allSelected = filteredLearners.length > 0 && Object.keys(mealRecords).length === filteredLearners.length && Object.values(mealRecords).every(r => r);
 
 
   return (
     <div className="flex justify-center">
-      <Card className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Learners in Class</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.total}</div>
+                    <p className="text-xs text-muted-foreground">Total learners in the selected class</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Meals Served ({mealType})</CardTitle>
+                    <Utensils className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.served}</div>
+                     <Progress value={stats.percentage} className="h-2 mt-2" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Serving Rate</CardTitle>
+                    <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.percentage.toFixed(1)}%</div>
+                    <p className="text-xs text-muted-foreground">Percentage of learners served</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Not Served</CardTitle>
+                    <UserX className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{stats.notServed}</div>
+                    <p className="text-xs text-muted-foreground">Learners not served a meal</p>
+                </CardContent>
+            </Card>
+        </div>
+
+
+        <Card className="w-full">
         <CardHeader>
           <CardTitle>Meal Recording</CardTitle>
           <CardDescription>Record the meals served to learners each day.</CardDescription>
@@ -223,13 +271,13 @@ export default function MealRecordingPage() {
         {filteredLearners.length > 0 && (
             <CardFooter className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs text-muted-foreground">
-                    <p><strong>Served:</strong> {stats.served}/{stats.total} ({stats.percentage}%)</p>
+                    <p><strong>Served:</strong> {stats.served}/{stats.total} ({stats.percentage.toFixed(1)}%)</p>
                 </div>
                 <Button onClick={handleSave}>Save Meal Records</Button>
             </CardFooter>
         )}
       </Card>
+      </div>
     </div>
   );
 }
-
