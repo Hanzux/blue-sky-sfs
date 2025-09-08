@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import {
   Table,
   TableBody,
@@ -21,12 +23,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding, Download, Upload } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, School, Building, PersonStanding, Download, Upload, FileDown } from 'lucide-react';
 import { LearnerForm } from '@/components/learner-form';
 import { initialLearners, type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -190,6 +193,61 @@ export default function LearnerEnrollmentPage() {
     };
     reader.readAsText(file);
     event.target.value = ''; // Reset file input
+  }
+
+  const handleExportToPdf = (learner: Learner) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text(`Learner Details: ${learner.name}`, 14, 22);
+    doc.setFontSize(11);
+    doc.text(`Learner Code: ${learner.code}`, 14, 30);
+    
+    (doc as any).autoTable({
+        startY: 35,
+        head: [['Field', 'Value']],
+        body: [
+            ['Name', learner.name],
+            ['Gender', learner.gender],
+            ['Date of Birth', learner.dob],
+            ['District', learner.district],
+            ['School', learner.school],
+            ['Class', learner.className],
+            ['Guardian', learner.guardian],
+        ],
+        theme: 'striped'
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY;
+
+    (doc as any).autoTable({
+        startY: finalY + 10,
+        head: [['Attendance Metrics', '']],
+        body: [
+            ['School Attendance Rate', '92%'],
+            ['Class Attendance Rate', '95%'],
+            ['Days Present', '46'],
+            ['Days Absent', '3'],
+            ['Days Excused', '1'],
+        ],
+        theme: 'grid'
+    });
+
+    (doc as any).autoTable({
+        startY: (doc as any).lastAutoTable.finalY + 10,
+        head: [['Feeding Metrics', '']],
+        body: [
+            ['Overall Feed Rate', '98%'],
+            ['Breakfasts Served', '48'],
+            ['Lunches Served', '49'],
+            ['Meals Missed', '1 (Lunch)'],
+        ],
+        theme: 'grid'
+    });
+
+
+    doc.save(`learner_${learner.code}.pdf`);
+    addAuditLog({ action: 'Learner Data Exported', details: `Exported PDF for learner: ${learner.name} (${learner.code})` });
   }
 
   return (
@@ -378,6 +436,7 @@ export default function LearnerEnrollmentPage() {
                     <DialogDescription>Details for {viewingLearner?.name}.</DialogDescription>
                 </DialogHeader>
                 {viewingLearner && (
+                  <>
                     <div className="grid gap-6 py-4">
                         <Card>
                             <CardHeader>
@@ -466,6 +525,13 @@ export default function LearnerEnrollmentPage() {
                             </Card>
                         </div>
                     </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => handleExportToPdf(viewingLearner)}>
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Export to PDF
+                      </Button>
+                    </DialogFooter>
+                    </>
                 )}
             </DialogContent>
         </Dialog>
