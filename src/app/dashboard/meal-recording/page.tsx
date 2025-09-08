@@ -113,23 +113,28 @@ export default function MealRecordingPage() {
     return initialLearners.filter(learner => learner.school === filterSchool && learner.className === filterClass);
   }, [filterSchool, filterClass]);
 
+  useEffect(() => {
+    const initialRecords: Record<string, boolean> = {};
+    filteredLearners.forEach(learner => {
+        initialRecords[learner.id] = false; // Default to 'Not Served'
+    });
+    setMealRecords(initialRecords);
+  }, [filteredLearners]);
+
   const handleDistrictChange = (district: string) => {
     setFilterDistrict(district);
     const schoolsInDistrict = initialSchools.filter(s => s.district === district).map(s => s.name);
     setFilterSchool(schoolsInDistrict[0] || 'All');
     setFilterClass('All');
-    setMealRecords({});
   }
 
   const handleSchoolChange = (school: string) => {
     setFilterSchool(school);
     setFilterClass('All');
-    setMealRecords({});
   }
 
   const handleClassChange = (className: string) => {
     setFilterClass(className);
-    setMealRecords({});
   }
   
   const handleMealRecordChange = (learnerId: string, served: boolean) => {
@@ -155,11 +160,11 @@ export default function MealRecordingPage() {
   }, [mealRecords, filteredLearners]);
 
   const handleSave = () => {
-    if (!mealDate || filteredLearners.length === 0 || Object.keys(mealRecords).length === 0) {
+    if (!mealDate || filteredLearners.length === 0) {
         toast({
             variant: 'destructive',
             title: 'Cannot Save',
-            description: 'Please ensure you have selected a class and recorded meals for at least one learner.',
+            description: 'Please ensure you have selected a class to record meals.',
         });
         return;
     }
@@ -182,8 +187,7 @@ export default function MealRecordingPage() {
       title: 'Meal Records Saved',
       description,
     });
-    addAuditLog({ action: 'Meal Recorded', details: `Recorded ${mealType} for ${Object.keys(mealRecords).length} learners in ${filterClass} at ${filterSchool}` });
-    setMealRecords({});
+    addAuditLog({ action: 'Meal Recorded', details: `Recorded ${mealType} for ${stats.total} learners in ${filterClass} at ${filterSchool}` });
   }
 
   const handleViewRecord = (record: SavedMealRecord) => {
@@ -274,7 +278,7 @@ export default function MealRecordingPage() {
     setCurrentPage(1);
   }
   
-  const allSelected = filteredLearners.length > 0 && Object.keys(mealRecords).length === filteredLearners.length && Object.values(mealRecords).every(r => r);
+  const allSelected = filteredLearners.length > 0 && Object.keys(mealRecords).length > 0 && Object.values(mealRecords).every(r => r);
 
 
   return (
@@ -426,6 +430,7 @@ export default function MealRecordingPage() {
             <CardFooter className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs text-muted-foreground">
                     <p><strong>Served:</strong> {stats.served}/{stats.total} ({stats.percentage.toFixed(1)}%)</p>
+                    <p><strong>Not Served:</strong> {stats.notServed}</p>
                 </div>
                 <Button onClick={handleSave}>Save Meal Records</Button>
             </CardFooter>
