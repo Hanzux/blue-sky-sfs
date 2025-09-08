@@ -27,6 +27,7 @@ import { adjustStock, getFoodItems } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, Package2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const LOW_STOCK_THRESHOLD = 30;
@@ -34,6 +35,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function StockTrackingPage() {
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
@@ -60,13 +62,15 @@ export default function StockTrackingPage() {
     if (!adjustState) return;
     if (adjustState.type === 'success') {
         toast({ title: 'Success', description: adjustState.message });
+        const details = adjustState.message;
+        addAuditLog({ action: 'Stock Adjusted', details });
         setIsFormDialogOpen(false);
         setSelectedItem(null);
         fetchItems(); // Refetch data
     } else if (adjustState.type === 'error') {
         toast({ variant: 'destructive', title: 'Error', description: adjustState.message });
     }
-  }, [adjustState, toast]);
+  }, [adjustState, toast, addAuditLog]);
 
 
   const availableSchools = useMemo(() => {

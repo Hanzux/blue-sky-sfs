@@ -68,6 +68,7 @@ import { MoreHorizontal, PlusCircle, KeyRound } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const userRoles = [
   'System Admin',
@@ -114,6 +115,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function UserManagementPage() {
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -161,13 +163,17 @@ export default function UserManagementPage() {
     fetchUsers();
   }, []);
   
-  const handleActionState = (state: any, successMessage: string, closeDialogs: () => void) => {
+  const handleActionState = (state: any, action: string, detailsFn: (state: any) => string) => {
     if (!state) return;
     if (state.type === 'success') {
-      toast({ title: 'Success', description: state.message || successMessage });
-      closeDialogs();
+      toast({ title: 'Success', description: state.message });
+      addAuditLog({ action, details: detailsFn(state) });
+      setIsCreateDialogOpen(false);
+      setIsEditDialogOpen(false);
+      setIsDeleteDialogOpen(false);
+      setIsResetPasswordDialogOpen(false);
       fetchUsers();
-      if (state.message?.includes('created')) {
+      if (action.includes('Create')) {
         createForm.reset();
       }
     } else if (state.type === 'error') {
@@ -178,22 +184,23 @@ export default function UserManagementPage() {
       });
     }
   };
-
+  
   useEffect(() => {
-     handleActionState(createState, 'User created successfully.', () => setIsCreateDialogOpen(false));
+     handleActionState(createState, 'User Created', (s) => s.message);
   }, [createState]);
  
    useEffect(() => {
-     handleActionState(updateState, 'User updated successfully.', () => setIsEditDialogOpen(false));
+     handleActionState(updateState, 'User Updated', () => `Updated details for user ${selectedUser?.email}`);
    }, [updateState]);
  
    useEffect(() => {
-     handleActionState(deleteState, 'User deleted successfully.', () => setIsDeleteDialogOpen(false));
+     handleActionState(deleteState, 'User Deleted', () => `Deleted user ${selectedUser?.email}`);
    }, [deleteState]);
 
    useEffect(() => {
-    handleActionState(resetState, 'Password reset successfully.', () => setIsResetPasswordDialogOpen(false));
+    handleActionState(resetState, 'Password Reset', () => `Reset password for user ${selectedUser?.email}`);
   }, [resetState]);
+
 
   const handleViewClick = (user: User) => {
     setSelectedUser(user);

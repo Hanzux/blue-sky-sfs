@@ -35,6 +35,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { addLearners } from './actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
@@ -42,6 +43,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function LearnerEnrollmentPage() {
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
   const [learners, setLearners] = useState<Learner[]>(initialLearners);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -115,16 +117,22 @@ export default function LearnerEnrollmentPage() {
         code: generateLearnerCode(learner.school),
     };
     setLearners([...learners, newLearner]);
+    addAuditLog({ action: 'Learner Enrolled', details: `Enrolled new learner: ${learner.name}` });
     setIsFormDialogOpen(false);
   };
   
   const handleUpdateLearner = (learner: Learner) => {
     setLearners(learners.map(l => l.id === learner.id ? learner : l));
+    addAuditLog({ action: 'Learner Updated', details: `Updated details for learner: ${learner.name}` });
     setEditingLearner(undefined);
     setIsFormDialogOpen(false);
   }
 
   const handleDeleteLearner = (id: string) => {
+    const learner = learners.find(l => l.id === id);
+    if (learner) {
+      addAuditLog({ action: 'Learner Deleted', details: `Deleted learner: ${learner.name}` });
+    }
     setLearners(learners.filter(learner => learner.id !== id));
   };
   
@@ -166,6 +174,7 @@ export default function LearnerEnrollmentPage() {
             const result = await addLearners(newLearners as Omit<Learner, 'id' | 'code'>[]);
             if (result.type === 'success') {
                 toast({ title: 'Success', description: result.message });
+                addAuditLog({ action: 'Learners Imported', details: `Imported ${newLearners.length} learners.` });
                 // Note: In a real app, you would refetch learners here.
                 // For this mock version, we will manually add them to see the effect.
                 const learnersToAdd = newLearners.map((learner, i) => ({ 

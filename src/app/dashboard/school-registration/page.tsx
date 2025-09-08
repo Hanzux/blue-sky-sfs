@@ -31,11 +31,13 @@ import { SchoolForm } from '@/components/school-form';
 import { initialSchools, type School } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
 
 export default function SchoolRegistrationPage() {
+  const { addAuditLog } = useAuditLog();
   const [schools, setSchools] = useState<School[]>(initialSchools);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -82,16 +84,22 @@ export default function SchoolRegistrationPage() {
     
     const newSchool = { ...school, id: (schools.length + 1).toString(), code };
     setSchools([...schools, newSchool]);
+    addAuditLog({ action: 'School Added', details: `Registered new school: ${school.name}` });
     setIsFormDialogOpen(false);
   };
   
   const handleUpdateSchool = (school: School) => {
     setSchools(schools.map(s => s.id === school.id ? school : s));
+    addAuditLog({ action: 'School Updated', details: `Updated details for school: ${school.name}` });
     setEditingSchool(undefined);
     setIsFormDialogOpen(false);
   }
 
   const handleDeleteSchool = (id: string) => {
+    const school = schools.find(s => s.id === id);
+    if(school) {
+        addAuditLog({ action: 'School Deleted', details: `Deleted school: ${school.name}` });
+    }
     setSchools(schools.filter(school => school.id !== id));
   };
   

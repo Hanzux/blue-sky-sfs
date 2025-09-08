@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { initialAuditLogs, type AuditLog } from '@/lib/audit-data';
 import { Badge } from '@/components/ui/badge';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const ITEMS_PER_PAGE = 5;
 // In a real app, this would come from an auth context
@@ -15,7 +15,7 @@ const MOCK_USER_ROLE = 'System Admin';
 
 export function AuditTrail() {
     const pathname = usePathname();
-    const [logs, setLogs] = useState<AuditLog[]>([]);
+    const { logs } = useAuditLog();
     const [currentPage, setCurrentPage] = useState(1);
     const [isAdmin, setIsAdmin] = useState(false);
 
@@ -30,8 +30,8 @@ export function AuditTrail() {
     const filteredLogs = useMemo(() => {
         if (!isAdmin) return [];
         // Filter logs to only show entries relevant to the current page
-        return initialAuditLogs.filter(log => log.page === pathname);
-    }, [pathname, isAdmin]);
+        return logs.filter(log => log.page === pathname);
+    }, [pathname, isAdmin, logs]);
 
     const paginatedLogs = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -41,7 +41,7 @@ export function AuditTrail() {
 
     const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
 
-    if (!isAdmin || paginatedLogs.length === 0) {
+    if (!isAdmin || filteredLogs.length === 0) {
         return null;
     }
 

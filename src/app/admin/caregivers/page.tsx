@@ -59,6 +59,7 @@ import { getCaregivers, createCaregiver, updateCaregiver, deleteCaregiver, impor
 import { MoreHorizontal, PlusCircle, Users, UserPlus, Link, Users2, Upload, Download } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const caregiverSchema = z.object({
   id: z.string().optional(),
@@ -86,6 +87,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function CaregiverManagementPage() {
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
@@ -136,11 +138,13 @@ export default function CaregiverManagementPage() {
     });
   }, [caregivers]);
   
-  const handleActionState = (state: any, successMessage: string, closeDialogs: () => void) => {
+  const handleActionState = (state: any, action: string, detailsFn: (state: any) => string) => {
     if (!state) return;
     if (state.type === 'success') {
-      toast({ title: 'Success', description: state.message || successMessage });
-      closeDialogs();
+      toast({ title: 'Success', description: state.message });
+      addAuditLog({ action, details: detailsFn(state) });
+      setIsFormDialogOpen(false);
+      setIsDeleteDialogOpen(false);
       fetchCaregivers();
       form.reset({ name: '', email: '', phone: '' });
       setSelectedCaregiver(null);
@@ -154,15 +158,15 @@ export default function CaregiverManagementPage() {
   };
 
   useEffect(() => {
-     handleActionState(createState, 'Caregiver created successfully.', () => setIsFormDialogOpen(false));
+     handleActionState(createState, 'Caregiver Created', (s) => s.message);
   }, [createState]);
  
    useEffect(() => {
-     handleActionState(updateState, 'Caregiver updated successfully.', () => setIsFormDialogOpen(false));
+     handleActionState(updateState, 'Caregiver Updated', (s) => `Updated details for caregiver ID ${selectedCaregiver?.id}`);
    }, [updateState]);
  
    useEffect(() => {
-     handleActionState(deleteState, 'Caregiver deleted successfully.', () => setIsDeleteDialogOpen(false));
+     handleActionState(deleteState, 'Caregiver Deleted', (s) => `Deleted caregiver ID ${selectedCaregiver?.id}`);
    }, [deleteState]);
    
   const handleNewClick = () => {
@@ -213,6 +217,7 @@ export default function CaregiverManagementPage() {
             const result = await importCaregivers(newCaregivers);
             if (result.type === 'success') {
                 toast({ title: 'Success', description: result.message });
+                addAuditLog({ action: 'Caregivers Imported', details: `Imported ${newCaregivers.length} caregivers.` });
                 fetchCaregivers(); // Refetch data
             }
         } catch (error) {

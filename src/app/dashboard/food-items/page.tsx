@@ -31,11 +31,13 @@ import { FoodItemForm } from '@/components/food-item-form';
 import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
 
 export default function FoodItemsPage() {
+  const { addAuditLog } = useAuditLog();
   const [foodItems, setFoodItems] = useState<FoodItem[]>(initialFoodItems);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -97,16 +99,22 @@ export default function FoodItemsPage() {
   const handleAddItem = (item: Omit<FoodItem, 'id'>) => {
     const newItem = { ...item, id: (foodItems.length + 1).toString() };
     setFoodItems([...foodItems, newItem]);
+    addAuditLog({ action: 'Food Item Added', details: `Added new item: ${item.name}` });
     setIsFormDialogOpen(false);
   };
   
   const handleUpdateItem = (item: FoodItem) => {
     setFoodItems(foodItems.map(i => i.id === item.id ? item : i));
+    addAuditLog({ action: 'Food Item Updated', details: `Updated item: ${item.name}` });
     setEditingItem(undefined);
     setIsFormDialogOpen(false);
   }
 
   const handleDeleteItem = (id: string) => {
+    const item = foodItems.find(i => i.id === id);
+    if(item) {
+        addAuditLog({ action: 'Food Item Deleted', details: `Deleted item: ${item.name}` });
+    }
     setFoodItems(foodItems.filter(item => item.id !== id));
   };
   

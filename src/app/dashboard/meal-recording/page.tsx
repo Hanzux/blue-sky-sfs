@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Users, UtensilsCrossed, Utensils, UserX } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
@@ -34,6 +35,7 @@ export default function MealRecordingPage() {
   const [mealType, setMealType] = useState<string>(mealTypes[0]);
   const [mealRecords, setMealRecords] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -96,6 +98,7 @@ export default function MealRecordingPage() {
   }
 
   const handleSave = () => {
+    const description = `${mealType} records for ${filterClass} at ${filterSchool} on ${mealDate?.toLocaleDateString()} have been saved.`;
     console.log({
       date: mealDate,
       district: filterDistrict,
@@ -106,8 +109,9 @@ export default function MealRecordingPage() {
     });
     toast({
       title: 'Meal Records Saved',
-      description: `${mealType} records for ${filterClass} at ${filterSchool} on ${mealDate?.toLocaleDateString()} have been saved.`,
+      description,
     });
+    addAuditLog({ action: 'Meal Recorded', details: `Recorded ${mealType} for ${Object.keys(mealRecords).length} learners in ${filterClass} at ${filterSchool}` });
   }
 
   const stats = useMemo(() => {

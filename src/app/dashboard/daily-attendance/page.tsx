@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { Users, CheckCheck, UserCheck, UserX } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
@@ -33,6 +34,7 @@ export default function DailyAttendancePage() {
   const [attendanceDate, setAttendanceDate] = useState<Date | undefined>(new Date());
   const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const { toast } = useToast();
+  const { addAuditLog } = useAuditLog();
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -92,6 +94,7 @@ export default function DailyAttendancePage() {
   };
 
   const handleSave = () => {
+    const description = `Attendance for ${filterClass} at ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been recorded.`;
     console.log({
       date: attendanceDate,
       school: filterSchool,
@@ -101,8 +104,9 @@ export default function DailyAttendancePage() {
     });
     toast({
       title: 'Attendance Saved',
-      description: `Attendance for ${filterClass} at ${filterSchool} on ${attendanceDate?.toLocaleDateString()} has been recorded.`,
+      description,
     });
+    addAuditLog({ action: 'Attendance Recorded', details: `Recorded attendance for ${Object.keys(attendance).length} learners in ${filterClass} at ${filterSchool}` });
   }
   
   const stats = useMemo(() => {

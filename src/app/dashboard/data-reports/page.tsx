@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download } from 'lucide-react';
+import { useAuditLog } from '@/contexts/audit-log-context';
 
 const reportTypes = [
     { value: 'attendance', label: 'Attendance by District/School' },
@@ -22,6 +23,7 @@ const reportTypes = [
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 
 export default function DataReportsPage() {
+    const { addAuditLog } = useAuditLog();
     const [reportType, setReportType] = useState(reportTypes[0].value);
     const [filterDistrict, setFilterDistrict] = useState('All');
     const [filterSchool, setFilterSchool] = useState('All');
@@ -114,6 +116,8 @@ export default function DataReportsPage() {
         const { data, headers } = generateReportData();
         setPreviewData(data);
         setPreviewHeaders(headers);
+        const reportLabel = reportTypes.find(r => r.value === reportType)?.label;
+        addAuditLog({ action: 'Report Previewed', details: `Previewed "${reportLabel}" report.` });
     }
     
     const handleExport = () => {
@@ -137,6 +141,7 @@ export default function DataReportsPage() {
         });
 
         doc.save(`${reportType}_report.pdf`);
+        addAuditLog({ action: 'Report Exported', details: `Exported "${reportTitle}" report as PDF.` });
     }
 
     return (
