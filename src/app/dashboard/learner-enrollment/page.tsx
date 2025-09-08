@@ -59,7 +59,7 @@ export default function LearnerEnrollmentPage() {
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
-      return ["All", ...initialSchools.map(s => s.name)];
+      return ["All", ...new Set(initialSchools.map(s => s.name))];
     }
     return ["All", ...initialSchools.filter(s => s.district === filterDistrict).map(s => s.name)];
   }, [filterDistrict]);
@@ -430,7 +430,7 @@ export default function LearnerEnrollmentPage() {
 
         {/* View Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle>View Learner</DialogTitle>
                     <DialogDescription>Details for {viewingLearner?.name}.</DialogDescription>
