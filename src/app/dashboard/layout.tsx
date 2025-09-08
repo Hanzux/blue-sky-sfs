@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { navItems, adminNavItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardLayout({
   children,
@@ -38,17 +39,23 @@ export default function DashboardLayout({
                 <TabsList className='hidden md:inline-flex'>
                   {navItems.map(item => (
                     <TabsTrigger key={item.label} value={item.href} asChild>
-                      <Link href={item.href}>{item.label}</Link>
+                      <Link href={item.href}>
+                        <item.icon className="w-4 h-4 mr-2" />
+                        {item.label}
+                      </Link>
                     </TabsTrigger>
                   ))}
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                          <TabsTrigger value="admin" className={cn(pathname.startsWith('/admin') && 'bg-background text-foreground shadow-sm')}>System Admin</TabsTrigger>
+                          <Button variant="ghost" className="relative h-auto rounded-none border-0 bg-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
+                            System Admin
+                          </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
                           {adminNavItems.map(item => (
                               <DropdownMenuItem key={item.label} asChild>
                                   <Link href={item.href}>
+                                      <item.icon className="w-4 h-4 mr-2" />
                                       {item.label}
                                   </Link>
                               </DropdownMenuItem>

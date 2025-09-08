@@ -68,10 +68,11 @@ export function Header() {
                     key={item.label}
                     href={item.href}
                     className={cn(
-                        "transition-colors hover:text-foreground",
+                        "flex items-center gap-4 transition-colors hover:text-foreground",
                         pathname === item.href ? "text-foreground" : "text-muted-foreground"
                     )}
                     >
+                    <item.icon className="h-5 w-5" />
                     {item.label}
                     </Link>
                 ))}
@@ -82,10 +83,11 @@ export function Header() {
                         key={item.label}
                         href={item.href}
                         className={cn(
-                            "transition-colors hover:text-foreground block py-2",
+                            "flex items-center gap-4 transition-colors hover:text-foreground py-2",
                             pathname === item.href ? "text-foreground" : "text-muted-foreground"
                         )}
                         >
+                        <item.icon className="h-5 w-5" />
                         {item.label}
                         </Link>
                     ))}
