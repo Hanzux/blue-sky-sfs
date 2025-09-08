@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -67,6 +67,22 @@ export default function MealRecordingPage() {
 
   const [savedFilterDistrict, setSavedFilterDistrict] = useState<string>('All');
   const [savedFilterSchool, setSavedFilterSchool] = useState<string>('All');
+
+  useEffect(() => {
+    const storedRecords = localStorage.getItem('savedMealRecords');
+    if (storedRecords) {
+        try {
+            const parsedRecords = JSON.parse(storedRecords).map((rec: any) => ({...rec, date: new Date(rec.date)}));
+            setSavedMealRecords(parsedRecords);
+        } catch (error) {
+            console.error("Failed to parse saved meal records from localStorage", error);
+        }
+    }
+}, []);
+
+  useEffect(() => {
+      localStorage.setItem('savedMealRecords', JSON.stringify(savedMealRecords));
+  }, [savedMealRecords]);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
