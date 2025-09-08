@@ -64,7 +64,7 @@ export default function LearnerEnrollmentPage() {
       const districtMatch = filterDistrict === 'All' || learner.district === filterDistrict;
       const schoolMatch = filterSchool === 'All' || learner.school === filterSchool;
       return districtMatch && schoolMatch;
-    });
+    }).reverse();
   }, [learners, filterDistrict, filterSchool]);
   
   const learnerMetrics = useMemo(() => {
