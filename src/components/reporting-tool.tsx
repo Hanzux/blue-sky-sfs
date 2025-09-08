@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { generateReportSummary, type GenerateReportSummaryOutput } from '@/ai/flows/generate-report-summary';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -20,6 +19,10 @@ const keyMetrics = [
     { value: 'stock_levels', label: 'Stock Levels' },
     { value: 'enrollment_trends', label: 'Learner Enrollment Trends' },
 ];
+
+type GenerateReportSummaryOutput = {
+    summary: string;
+};
 
 export function ReportingTool() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -41,15 +44,14 @@ export function ReportingTool() {
       if (!date?.from || !date?.to) {
         throw new Error('Please select a valid date range.');
       }
-      const summary = await generateReportSummary({
-        reportData: 'Sample report data including learner attendance and meals served.',
-        reportType: 'Termly',
-        dateRange: `${date.from.toDateString()} to ${date.to.toDateString()}`,
-        userRole: 'Project Coordinator',
-        screenContext: `Dashboard reporting tool, grouped by ${groupBy}.`,
-        keyMetric: keyMetric,
-      });
+      
+      // Mocking the AI response
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const summary = {
+          summary: `This is a mock AI summary for the "${keyMetrics.find(m => m.value === keyMetric)?.label}" metric, grouped by ${groupBy}. The analysis covers the period from ${date.from.toDateString()} to ${date.to.toDateString()}. In a real scenario, this text would contain detailed insights and trends based on the selected data.`
+      }
       setResult(summary);
+
     } catch (error) {
       console.error('Error generating summary:', error);
       toast({
