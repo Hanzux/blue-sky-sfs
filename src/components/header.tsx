@@ -130,7 +130,7 @@ export function Header() {
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                    <Link href="/">Logout</Link>
+                    <Link href="/login">Logout</Link>
                 </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
