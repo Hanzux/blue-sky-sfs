@@ -16,6 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +29,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { MoreHorizontal, Users, TrendingUp, TrendingDown, UserX, UserCheck, ChevronsUp, GraduationCap } from 'lucide-react';
+import { MoreHorizontal, Users, TrendingUp, TrendingDown, UserX, UserCheck, ChevronsUp, GraduationCap, Eye } from 'lucide-react';
 import { type Learner, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -56,8 +57,8 @@ const districts = ["All", ...new Set(initialSchools.map(school => school.distric
 const ITEMS_PER_PAGE = 10;
 
 const promoteClassSchema = z.object({
-    school: z.string().optional(),
-    className: z.string().optional(),
+    school: z.string().min(1, 'School is required.'),
+    className: z.string().min(1, 'Class name is required.'),
     newClassName: z.string().min(1, 'New class name is required.'),
 });
 type PromoteClassFormValues = z.infer<typeof promoteClassSchema>;
@@ -69,6 +70,8 @@ export default function LearnerProgressionPage() {
     const [learners, setLearners] = useState<LearnerWithStatus[]>([]);
     const [loading, setLoading] = useState(true);
     const [isPromoteDialogOpen, setIsPromoteDialogOpen] = useState(false);
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+    const [viewingLearner, setViewingLearner] = useState<LearnerWithStatus | null>(null);
     
     const [filterDistrict, setFilterDistrict] = useState<string>('All');
     const [filterSchool, setFilterSchool] = useState<string>('All');
@@ -188,6 +191,11 @@ export default function LearnerProgressionPage() {
         promoteClassAction(formData);
     }
 
+    const handleViewClick = (learner: LearnerWithStatus) => {
+        setViewingLearner(learner);
+        setIsViewDialogOpen(true);
+    };
+
     return (
         <div className="flex justify-center">
             <div className="w-full max-w-6xl space-y-6">
@@ -258,6 +266,8 @@ export default function LearnerProgressionPage() {
                                     </DialogHeader>
                                     <Form {...promoteForm}>
                                     <form onSubmit={promoteForm.handleSubmit(onPromoteSubmit)} className="space-y-4">
+                                        <input type="hidden" {...promoteForm.register('school')} value={filterSchool} />
+                                        <input type="hidden" {...promoteForm.register('className')} value={filterClass} />
                                         <FormField
                                             control={promoteForm.control}
                                             name="newClassName"
@@ -346,6 +356,10 @@ export default function LearnerProgressionPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent>
+                                                            <DropdownMenuItem onClick={() => handleViewClick(learner)}>
+                                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
                                                             <DropdownMenuItem asChild>
                                                                 <button type="submit" name="status" value="Promoted" formAction={updateStatusAction} className="w-full">
                                                                     <UserCheck className="mr-2 h-4 w-4" />Promote
@@ -402,6 +416,62 @@ export default function LearnerProgressionPage() {
                         </CardFooter>
                     )}
                 </Card>
+
+                 {/* View Dialog */}
+                <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>View Learner Details</DialogTitle>
+                            <DialogDescription>
+                                Full profile for {viewingLearner?.name}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        {viewingLearner && (
+                           <div className="grid gap-4 py-4">
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Code</Label>
+                                   <div className="col-span-2">{viewingLearner.code}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Name</Label>
+                                   <div className="col-span-2">{viewingLearner.name}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Date of Birth</Label>
+                                   <div className="col-span-2">{viewingLearner.dob}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Gender</Label>
+                                   <div className="col-span-2">{viewingLearner.gender}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Guardian</Label>
+                                   <div className="col-span-2">{viewingLearner.guardian}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">District</Label>
+                                   <div className="col-span-2">{viewingLearner.district}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">School</Label>
+                                   <div className="col-span-2">{viewingLearner.school}</div>
+                               </div>
+                               <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Class</Label>
+                                   <div className="col-span-2">{viewingLearner.className}</div>
+                               </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                   <Label className="text-right">Status</Label>
+                                   <div className="col-span-2">
+                                        <Badge variant={getStatusBadgeVariant(viewingLearner.status)}>
+                                            {viewingLearner.status}
+                                        </Badge>
+                                   </div>
+                               </div>
+                           </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );
