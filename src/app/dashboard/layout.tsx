@@ -18,16 +18,14 @@ export default function DashboardLayout({
     <AuditLogProvider>
       <div className="flex min-h-screen w-full flex-col">
         <Header />
-        <div className='flex flex-col sm:gap-4 sm:py-4'>
-          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
             {children}
             {showAuditTrail && (
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-8">
                   <AuditTrail />
               </div>
             )}
           </main>
-        </div>
       </div>
     </AuditLogProvider>
   );
