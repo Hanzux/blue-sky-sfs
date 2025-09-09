@@ -13,13 +13,14 @@ export const navItems = [
     { href: '/dashboard/data-reports', icon: FileText, label: 'Data Reports' },
     { href: '/dashboard/food-items', icon: Package, label: 'Food Items' },
     { href: '/dashboard/stock-tracking', icon: Warehouse, label: 'Stock Tracking' },
+    { href: '/admin/caregivers', icon: Contact, label: 'Caregiver Management' },
+    { href: '/admin/volunteers', icon: HandHeart, label: 'Volunteer Management' },
   ];
 
 export const adminNavItems = [
     { href: '/admin/users', icon: Users, label: 'User Management' },
-    { href: '/admin/caregivers', icon: Contact, label: 'Caregiver Management' },
-    { href: '/admin/volunteers', icon: HandHeart, label: 'Volunteer Management' },
 ]
 
     
+
 
