@@ -1,8 +1,8 @@
 
 'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useFormState } from 'react-dom';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -69,6 +69,7 @@ const volunteerSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+  district: z.string().optional(),
   school: z.string().min(1, { message: 'Please select a school.' }),
 });
 type VolunteerFormValues = z.infer<typeof volunteerSchema>;
@@ -87,6 +88,7 @@ type VolunteerMetrics = {
     unassignedVolunteers: number;
 };
 
+const districts = [...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
 
 export default function VolunteerManagementPage() {
@@ -109,6 +111,16 @@ export default function VolunteerManagementPage() {
   const form = useForm<VolunteerFormValues>({
     resolver: zodResolver(volunteerSchema),
   });
+
+  const selectedDistrict = useWatch({
+    control: form.control,
+    name: 'district',
+  });
+  
+  const availableSchools = useMemo(() => {
+    if (!selectedDistrict) return [];
+    return initialSchools.filter(s => s.district === selectedDistrict);
+  }, [selectedDistrict]);
 
   const fetchVolunteers = async () => {
     setLoading(true);
@@ -173,7 +185,7 @@ export default function VolunteerManagementPage() {
    
   const handleNewClick = () => {
     setSelectedVolunteer(null);
-    form.reset({ name: '', email: '', phone: '', school: '' });
+    form.reset({ name: '', email: '', phone: '', district: '', school: '' });
     setIsFormDialogOpen(true);
   };
   
@@ -183,12 +195,14 @@ export default function VolunteerManagementPage() {
   }
 
   const handleEditClick = (volunteer: Volunteer) => {
+    const schoolData = initialSchools.find(s => s.name === volunteer.school);
     setSelectedVolunteer(volunteer);
     form.reset({
       id: volunteer.id,
       name: volunteer.name || '',
       email: volunteer.email || '',
       phone: volunteer.phone || '',
+      district: schoolData?.district || '',
       school: volunteer.school || '',
     });
     setIsFormDialogOpen(true);
@@ -356,18 +370,40 @@ export default function VolunteerManagementPage() {
                         />
                          <FormField
                             control={form.control}
+                            name="district"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>District</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a district" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {districts.map(d => (
+                                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                         <FormField
+                            control={form.control}
                             name="school"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>School Assignment</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDistrict}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a school" />
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                    {initialSchools.map(school => (
+                                    {availableSchools.map(school => (
                                         <SelectItem key={school.id} value={school.name}>{school.name}</SelectItem>
                                     ))}
                                     </SelectContent>
