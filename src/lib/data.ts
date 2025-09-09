@@ -82,5 +82,7 @@ export const initialFoodItems: FoodItem[] = [
     { id: '2', name: 'Beans', category: 'Legumes', unit: 'kg', stock: 80, district: 'Mt Darwin', school: 'Dotito Primary School'  },
     { id: '3', name: 'Cooking Oil', category: 'Oils', unit: 'litres', stock: 50, district: 'Mbire', school: 'Mahuhwe Primary School'  },
     { id: '4', name: 'Salt', category: 'Condiments', unit: 'kg', stock: 25, district: 'Mbire', school: 'Mahuhwe Primary School'  },
-    { id: '5', name: 'Sugar', category: 'Condiments', unit: 'kg', stock: 100, district: 'Mt Darwin', school: 'Kadohwata Primary School' },
+    { id: '5', name: 'Eggs', category: 'Protein', unit: 'crates', stock: 40, district: 'Mt Darwin', school: 'Kadohwata Primary School' },
+    { id: '6', name: 'Vegetables', category: 'Produce', unit: 'kg', stock: 60, district: 'Mt Darwin', school: 'Chiutsa primary school'},
+    { id: '7', name: '1 Pot Meal', category: 'Composite Meals', unit: 'servings', stock: 200, district: 'Mbire', school: 'Sangojena Primary School'}
 ];
