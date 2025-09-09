@@ -1,5 +1,5 @@
 
-import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School, Contact, FileText, Building, PersonStanding, HandHeart, TrendingUp } from "lucide-react";
+import { Home, Users, CalendarCheck, Soup, BarChart3, Package, Warehouse, School, Contact, FileText, Building, PersonStanding, HandHeart, TrendingUp, HeartPulse } from "lucide-react";
 
 export const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -8,6 +8,7 @@ export const navItems = [
     { href: '/dashboard/daily-attendance', icon: CalendarCheck, label: 'Daily Attendance' },
     { href: '/dashboard/meal-recording', icon: Soup, label: 'Meal Recording' },
     { href: '/dashboard/learner-progression', icon: TrendingUp, label: 'Learner Progression' },
+    { href: '/dashboard/muac-tracking', icon: HeartPulse, label: 'MUAC Tracking'},
     { href: '/dashboard/reporting', icon: BarChart3, label: 'Reporting' },
     { href: '/dashboard/data-reports', icon: FileText, label: 'Data Reports' },
     { href: '/dashboard/food-items', icon: Package, label: 'Food Items' },
@@ -21,3 +22,4 @@ export const adminNavItems = [
 ]
 
     
+
