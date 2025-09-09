@@ -15,6 +15,7 @@ import { useAuditLog } from '@/contexts/audit-log-context';
 
 const reportTypes = [
     { value: 'attendance', label: 'Attendance by District/School' },
+    { value: 'attendance_analysis', label: 'Attendance Analysis (Above/Below 80%)' },
     { value: 'meals', label: 'Meals Served by District/School' },
     { value: 'stock', label: 'Stock Levels by District/School' },
     { value: 'trends', label: 'Learner Trends Analysis' },
@@ -75,6 +76,43 @@ export default function DataReportsPage() {
                     district: l.district,
                     status: Math.random() > 0.1 ? 'Present' : 'Absent' 
                 }));
+                break;
+            case 'attendance_analysis':
+                headers = ['Class', 'Gender', 'Attendance > 80%', 'Attendance < 80%'];
+                const analysis: Record<string, { maleAbove: number, maleBelow: number, femaleAbove: number, femaleBelow: number }> = {};
+                
+                learners.forEach(l => {
+                    if (!analysis[l.className]) {
+                        analysis[l.className] = { maleAbove: 0, maleBelow: 0, femaleAbove: 0, femaleBelow: 0 };
+                    }
+                    const attendanceRate = Math.random() * 30 + 70; // Simulate rate between 70-100
+                    if (l.gender === 'Male') {
+                        if (attendanceRate >= 80) analysis[l.className].maleAbove++;
+                        else analysis[l.className].maleBelow++;
+                    } else {
+                        if (attendanceRate >= 80) analysis[l.className].femaleAbove++;
+                        else analysis[l.className].femaleBelow++;
+                    }
+                });
+
+                Object.entries(analysis).forEach(([className, stats]) => {
+                    if (stats.maleAbove > 0 || stats.maleBelow > 0) {
+                        data.push({
+                            className,
+                            gender: 'Male',
+                            above80: stats.maleAbove,
+                            below80: stats.maleBelow,
+                        });
+                    }
+                    if (stats.femaleAbove > 0 || stats.femaleBelow > 0) {
+                        data.push({
+                            className,
+                            gender: 'Female',
+                            above80: stats.femaleAbove,
+                            below80: stats.femaleBelow,
+                        });
+                    }
+                });
                 break;
             case 'meals':
                 headers = ['Learner Name', 'Gender', 'Class', 'School', 'Breakfast', 'Lunch'];
