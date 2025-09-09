@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { useActionState } from 'react';
+import { useFormState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -127,10 +127,10 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [createState, createFormAction, isCreatePending] = useActionState(createUser, null);
-  const [updateState, updateFormAction, isUpdatePending] = useActionState(updateUser, null);
-  const [deleteState, deleteFormAction, isDeletePending] = useActionState(deleteUser, null);
-  const [resetState, resetFormAction, isResetPending] = useActionState(resetPassword, null);
+  const [createState, createFormAction] = useFormState(createUser, null);
+  const [updateState, updateFormAction] = useFormState(updateUser, null);
+  const [deleteState, deleteFormAction] = useFormState(deleteUser, null);
+  const [resetState, resetFormAction] = useFormState(resetPassword, null);
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -332,8 +332,8 @@ export default function UserManagementPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isCreatePending}>
-                      {isCreatePending ? 'Creating...' : 'Create User'}
+                    <Button type="submit" className="w-full">
+                      Create User
                     </Button>
                   </form>
                 </Form>
@@ -531,8 +531,8 @@ export default function UserManagementPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isUpdatePending}>
-                {isUpdatePending ? 'Updating...' : 'Update User'}
+              <Button type="submit" className="w-full">
+                Update User
               </Button>
             </form>
           </Form>
@@ -564,8 +564,8 @@ export default function UserManagementPage() {
                     </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full" disabled={isResetPending}>
-                    {isResetPending ? 'Resetting...' : 'Reset Password'}
+                <Button type="submit" className="w-full">
+                    Reset Password
                 </Button>
             </form>
           </Form>
@@ -590,8 +590,8 @@ export default function UserManagementPage() {
             <form action={deleteFormAction}>
               <input type="hidden" name="uid" value={selectedUser?.uid} />
               <AlertDialogAction asChild>
-                <Button type="submit" variant="destructive" disabled={isDeletePending}>
-                  {isDeletePending ? 'Deleting...' : 'Delete'}
+                <Button type="submit" variant="destructive">
+                  Delete
                 </Button>
               </AlertDialogAction>
             </form>
@@ -601,5 +601,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
-    

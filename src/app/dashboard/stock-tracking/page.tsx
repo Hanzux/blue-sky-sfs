@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useActionState } from 'react';
+import { useFormState } from 'react-dom';
 import {
   Table,
   TableBody,
@@ -46,7 +46,7 @@ export default function StockTrackingPage() {
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
   
-  const [adjustState, adjustFormAction, isAdjustPending] = useActionState(adjustStock, null);
+  const [adjustState, adjustFormAction] = useFormState(adjustStock, null);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -293,7 +293,7 @@ export default function StockTrackingPage() {
                 <StockAdjustmentForm
                     foodItem={selectedItem}
                     formAction={adjustFormAction}
-                    isPending={isAdjustPending}
+                    isPending={false}
                 />
             )}
           </DialogContent>
@@ -302,5 +302,3 @@ export default function StockTrackingPage() {
     </div>
   );
 }
-
-    

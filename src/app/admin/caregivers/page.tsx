@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useActionState } from 'react';
+import { useFormState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -100,9 +100,9 @@ export default function CaregiverManagementPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newThisMonth, setNewThisMonth] = useState(0);
 
-  const [createState, createFormAction, isCreatePending] = useActionState(createCaregiver, null);
-  const [updateState, updateFormAction, isUpdatePending] = useActionState(updateCaregiver, null);
-  const [deleteState, deleteFormAction, isDeletePending] = useActionState(deleteCaregiver, null);
+  const [createState, createFormAction] = useFormState(createCaregiver, null);
+  const [updateState, updateFormAction] = useFormState(updateCaregiver, null);
+  const [deleteState, deleteFormAction] = useFormState(deleteCaregiver, null);
 
   const form = useForm<CaregiverFormValues>({
     resolver: zodResolver(caregiverSchema),
@@ -125,6 +125,7 @@ export default function CaregiverManagementPage() {
 
   useEffect(() => {
     fetchCaregivers();
+    // Generate the random number only once when the component mounts
     setNewThisMonth(Math.floor(Math.random() * 3 + 1));
   }, []);
 
@@ -230,7 +231,6 @@ export default function CaregiverManagementPage() {
   }
   
   const formAction = selectedCaregiver ? updateFormAction : createFormAction;
-  const isPending = selectedCaregiver ? isUpdatePending : isCreatePending;
 
   const paginatedCaregivers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -363,8 +363,8 @@ export default function CaregiverManagementPage() {
                             </FormItem>
                         )}
                         />
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending ? (selectedCaregiver ? 'Updating...' : 'Creating...') : (selectedCaregiver ? 'Update Caregiver' : 'Create Caregiver')}
+                        <Button type="submit" className="w-full">
+                            {selectedCaregiver ? 'Update Caregiver' : 'Create Caregiver'}
                         </Button>
                     </form>
                     </Form>
@@ -516,8 +516,8 @@ export default function CaregiverManagementPage() {
             <form action={deleteFormAction}>
               <input type="hidden" name="id" value={selectedCaregiver?.id} />
               <AlertDialogAction asChild>
-                <Button type="submit" variant="destructive" disabled={isDeletePending}>
-                  {isDeletePending ? 'Deleting...' : 'Delete'}
+                <Button type="submit" variant="destructive">
+                  Delete
                 </Button>
               </AlertDialogAction>
             </form>
@@ -527,5 +527,3 @@ export default function CaregiverManagementPage() {
     </div>
   );
 }
-
-    
