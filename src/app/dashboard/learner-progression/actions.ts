@@ -56,8 +56,8 @@ export async function updateLearnerStatus(prevState: any, formData: FormData) {
 }
 
 const promoteClassSchema = z.object({
-    school: z.string(),
-    className: z.string(),
+    school: z.string().min(1, 'School is required.'),
+    className: z.string().min(1, 'Class name is required.'),
     newClassName: z.string().min(1, 'New class name is required.'),
 });
 
@@ -69,6 +69,7 @@ export async function promoteClass(prevState: any, formData: FormData) {
         return {
             type: 'error',
             message: 'Invalid data provided for class promotion.',
+            errors: validatedFields.error.flatten().fieldErrors,
         };
     }
     const { school, className, newClassName } = validatedFields.data;
@@ -77,7 +78,7 @@ export async function promoteClass(prevState: any, formData: FormData) {
     learners.forEach(learner => {
         if (learner.school === school && learner.className === className && learner.status === 'Active') {
             learner.status = 'Promoted';
-            learner.className = newClassName; // This now correctly updates the class name
+            learner.className = newClassName;
             promotedCount++;
         }
     });

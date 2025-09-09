@@ -56,8 +56,8 @@ const districts = ["All", ...new Set(initialSchools.map(school => school.distric
 const ITEMS_PER_PAGE = 10;
 
 const promoteClassSchema = z.object({
-    school: z.string(),
-    className: z.string(),
+    school: z.string().optional(),
+    className: z.string().optional(),
     newClassName: z.string().min(1, 'New class name is required.'),
 });
 type PromoteClassFormValues = z.infer<typeof promoteClassSchema>;
@@ -406,5 +406,3 @@ export default function LearnerProgressionPage() {
         </div>
     );
 }
-
-    
