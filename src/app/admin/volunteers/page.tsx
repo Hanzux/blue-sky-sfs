@@ -90,7 +90,7 @@ type VolunteerMetrics = {
     unassignedVolunteers: number;
 };
 
-const districts = [...new Set(initialSchools.map(school => school.district))];
+const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
 
 export default function VolunteerManagementPage() {
@@ -106,6 +106,9 @@ export default function VolunteerManagementPage() {
   const [volunteerMetrics, setVolunteerMetrics] = useState<VolunteerMetrics | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [filterDistrict, setFilterDistrict] = useState<string>('All');
+  const [filterSchool, setFilterSchool] = useState<string>('All');
+
   const [createState, createFormAction] = useFormState(createVolunteer, null);
   const [updateState, updateFormAction] = useFormState(updateVolunteer, null);
   const [deleteState, deleteFormAction] = useFormState(deleteVolunteer, null);
@@ -114,15 +117,22 @@ export default function VolunteerManagementPage() {
     resolver: zodResolver(volunteerSchema),
   });
 
-  const selectedDistrict = useWatch({
+  const selectedDistrictInForm = useWatch({
     control: form.control,
     name: 'district',
   });
   
-  const availableSchools = useMemo(() => {
-    if (!selectedDistrict) return [];
-    return initialSchools.filter(s => s.district === selectedDistrict);
-  }, [selectedDistrict]);
+  const availableSchoolsInForm = useMemo(() => {
+    if (!selectedDistrictInForm) return [];
+    return initialSchools.filter(s => s.district === selectedDistrictInForm);
+  }, [selectedDistrictInForm]);
+
+  const availableSchoolsForFilter = useMemo(() => {
+    if (filterDistrict === 'All') {
+      return ["All", ...new Set(initialSchools.map(s => s.name))];
+    }
+    return ["All", ...initialSchools.filter(s => s.district === filterDistrict).map(s => s.name)];
+  }, [filterDistrict]);
 
   const fetchVolunteers = async () => {
     setLoading(true);
@@ -142,6 +152,24 @@ export default function VolunteerManagementPage() {
   useEffect(() => {
     fetchVolunteers();
   }, []);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterDistrict, filterSchool]);
+
+  const filteredVolunteers = useMemo(() => {
+    // get district for each volunteer based on school
+    const volunteersWithDistrict = volunteers.map(v => {
+        const school = initialSchools.find(s => s.name === v.school);
+        return { ...v, district: school?.district };
+    });
+
+    return volunteersWithDistrict.filter(volunteer => {
+        const districtMatch = filterDistrict === 'All' || volunteer.district === filterDistrict;
+        const schoolMatch = filterSchool === 'All' || volunteer.school === filterSchool;
+        return districtMatch && schoolMatch;
+    });
+  }, [volunteers, filterDistrict, filterSchool]);
 
   useEffect(() => {
     if (volunteers.length > 0) {
@@ -250,7 +278,7 @@ export default function VolunteerManagementPage() {
   const handleExportPdf = () => {
     const doc = new jsPDF();
     const tableColumns = ["Name", "Email", "Phone", "School"];
-    const tableRows = volunteers.map(v => [
+    const tableRows = filteredVolunteers.map(v => [
         v.name,
         v.email,
         v.phone,
@@ -275,10 +303,10 @@ export default function VolunteerManagementPage() {
   const paginatedVolunteers = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
-    return volunteers.slice(startIndex, endIndex);
-  }, [volunteers, currentPage]);
+    return filteredVolunteers.slice(startIndex, endIndex);
+  }, [filteredVolunteers, currentPage]);
 
-  const totalPages = Math.ceil(volunteers.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredVolunteers.length / ITEMS_PER_PAGE);
 
   return (
     <div className="flex flex-col items-center p-4 sm:p-6 gap-6">
@@ -409,7 +437,7 @@ export default function VolunteerManagementPage() {
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                    {districts.map(d => (
+                                    {districts.filter(d => d !== 'All').map(d => (
                                         <SelectItem key={d} value={d}>{d}</SelectItem>
                                     ))}
                                     </SelectContent>
@@ -424,14 +452,14 @@ export default function VolunteerManagementPage() {
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>School Assignment</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDistrict}>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={!selectedDistrictInForm}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a school" />
                                     </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                    {availableSchools.map(school => (
+                                    {availableSchoolsInForm.map(school => (
                                         <SelectItem key={school.id} value={school.name}>{school.name}</SelectItem>
                                     ))}
                                     </SelectContent>
@@ -449,6 +477,30 @@ export default function VolunteerManagementPage() {
                 </Dialog>
             </div>
           </div>
+           <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>District</Label>
+                  <Select value={filterDistrict} onValueChange={(value) => {setFilterDistrict(value); setFilterSchool('All');}}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select District" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label>School</Label>
+                  <Select value={filterSchool} onValueChange={setFilterSchool} disabled={filterDistrict === 'All'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select School" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSchoolsForFilter.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -613,5 +665,3 @@ export default function VolunteerManagementPage() {
     </div>
   );
 }
-
-    
