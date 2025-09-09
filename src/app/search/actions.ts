@@ -22,7 +22,8 @@ export async function searchAll(query: string) {
 
   let userResults: any[] = [];
   try {
-    userResults = (await getUsers()).filter(u =>
+    const users = await getUsers();
+    userResults = users.filter(u =>
       (u.name && u.name.toLowerCase().includes(lowerCaseQuery)) ||
       (u.email && u.email.toLowerCase().includes(lowerCaseQuery))
     );

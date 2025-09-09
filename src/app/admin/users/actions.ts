@@ -33,7 +33,8 @@ const resetPasswordSchema = z.object({
 export async function getUsers() {
   const adminAuth = await getAdminAuth();
   if (!adminAuth) {
-    throw new Error('Firebase Admin SDK not initialized.');
+    console.warn('Firebase Admin SDK not initialized. Skipping user fetch.');
+    return [];
   }
 
   try {
