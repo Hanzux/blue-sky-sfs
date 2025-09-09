@@ -61,6 +61,7 @@ import { MoreHorizontal, PlusCircle, Users, UserPlus, Link, Users2, Upload, Down
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const caregiverSchema = z.object({
   id: z.string().optional(),
@@ -99,6 +100,7 @@ export default function CaregiverManagementPage() {
   const [caregiverMetrics, setCaregiverMetrics] = useState<CaregiverMetrics | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newThisMonth, setNewThisMonth] = useState(0);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const [createState, createFormAction] = useFormState(createCaregiver, null);
   const [updateState, updateFormAction] = useFormState(updateCaregiver, null);
@@ -240,6 +242,20 @@ export default function CaregiverManagementPage() {
 
   const totalPages = Math.ceil(caregivers.length / ITEMS_PER_PAGE);
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedCaregivers.map(c => c.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="flex flex-col items-center p-4 sm:p-6 gap-6">
         <div className="w-full max-w-4xl grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -378,6 +394,13 @@ export default function CaregiverManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead padding="checkbox">
+                    <Checkbox
+                      checked={selectedRows.length === paginatedCaregivers.length && paginatedCaregivers.length > 0}
+                      onCheckedChange={(value) => handleSelectAll(!!value)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
@@ -390,6 +413,9 @@ export default function CaregiverManagementPage() {
                 {loading
                   ? Array.from({ length: 3 }).map((_, i) => (
                       <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
                         <TableCell>
                           <Skeleton className="h-4 w-[150px]" />
                         </TableCell>
@@ -405,7 +431,14 @@ export default function CaregiverManagementPage() {
                       </TableRow>
                     ))
                   : paginatedCaregivers.map((caregiver) => (
-                      <TableRow key={caregiver.id}>
+                      <TableRow key={caregiver.id} data-state={selectedRows.includes(caregiver.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(caregiver.id)}
+                            onCheckedChange={() => handleSelectRow(caregiver.id)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell>{caregiver.name || '-'}</TableCell>
                         <TableCell>{caregiver.email}</TableCell>
                         <TableCell>{caregiver.phone}</TableCell>
@@ -449,7 +482,7 @@ export default function CaregiverManagementPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {selectedRows.length} of {caregivers.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

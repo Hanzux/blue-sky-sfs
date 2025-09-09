@@ -32,6 +32,7 @@ import { initialFoodItems, type FoodItem, initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
@@ -46,6 +47,7 @@ export default function FoodItemsPage() {
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -134,6 +136,20 @@ export default function FoodItemsPage() {
     }
     setIsFormDialogOpen(open);
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedFoodItems.map(item => item.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="flex justify-center">
@@ -240,6 +256,13 @@ export default function FoodItemsPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead padding="checkbox">
+                        <Checkbox
+                        checked={selectedRows.length === paginatedFoodItems.length && paginatedFoodItems.length > 0}
+                        onCheckedChange={(value) => handleSelectAll(!!value)}
+                        aria-label="Select all"
+                        />
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead className="hidden sm:table-cell">District</TableHead>
@@ -253,7 +276,14 @@ export default function FoodItemsPage() {
                 </TableHeader>
                 <TableBody>
                     {paginatedFoodItems.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} data-state={selectedRows.includes(item.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(item.id)}
+                            onCheckedChange={() => handleSelectRow(item.id)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell className="hidden sm:table-cell">{item.district}</TableCell>
@@ -283,7 +313,7 @@ export default function FoodItemsPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {selectedRows.length} of {filteredFoodItems.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

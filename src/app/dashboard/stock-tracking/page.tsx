@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, Package2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const LOW_STOCK_THRESHOLD = 30;
@@ -45,6 +46,7 @@ export default function StockTrackingPage() {
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
   
   const [adjustState, adjustFormAction] = useFormState(adjustStock, null);
 
@@ -112,6 +114,7 @@ export default function StockTrackingPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedRows([]);
   }, [filterDistrict, filterSchool]);
 
 
@@ -131,6 +134,20 @@ export default function StockTrackingPage() {
       setSelectedItem(null);
     }
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedFoodItems.map(item => item.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
 
 
   return (
@@ -219,6 +236,13 @@ export default function StockTrackingPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead padding="checkbox">
+                        <Checkbox
+                        checked={selectedRows.length === paginatedFoodItems.length && paginatedFoodItems.length > 0}
+                        onCheckedChange={(value) => handleSelectAll(!!value)}
+                        aria-label="Select all"
+                        />
+                    </TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead className="hidden sm:table-cell">School</TableHead>
@@ -231,13 +255,20 @@ export default function StockTrackingPage() {
                     {loading
                      ? Array.from({ length: 3 }).map((_, i) => (
                       <TableRow key={i}>
-                        <TableCell colSpan={6}>
+                        <TableCell colSpan={7}>
                           <Skeleton className="h-4 w-full" />
                         </TableCell>
                       </TableRow>
                     ))
                     : paginatedFoodItems.map((item) => (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} data-state={selectedRows.includes(item.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(item.id)}
+                            onCheckedChange={() => handleSelectRow(item.id)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell className="hidden sm:table-cell">{item.school}</TableCell>
@@ -261,7 +292,7 @@ export default function StockTrackingPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {selectedRows.length} of {filteredFoodItems.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

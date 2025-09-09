@@ -39,6 +39,7 @@ import { Separator } from '@/components/ui/separator';
 import { addLearners } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
@@ -57,6 +58,7 @@ export default function LearnerEnrollmentPage() {
   const [filterClass, setFilterClass] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const availableSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -111,6 +113,7 @@ export default function LearnerEnrollmentPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedRows([]);
   }, [filterDistrict, filterSchool, filterClass]);
 
   const handleDistrictChange = (district: string) => {
@@ -316,6 +319,21 @@ export default function LearnerEnrollmentPage() {
     addAuditLog({ action: 'Learner Data Exported', details: `Exported PDF for learner: ${learner.name} (${learner.code})` });
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedLearners.map(learner => learner.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
+
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-6xl space-y-6">
@@ -444,6 +462,13 @@ export default function LearnerEnrollmentPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead padding="checkbox">
+                        <Checkbox
+                        checked={selectedRows.length === paginatedLearners.length && paginatedLearners.length > 0}
+                        onCheckedChange={(value) => handleSelectAll(!!value)}
+                        aria-label="Select all"
+                        />
+                    </TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Gender</TableHead>
@@ -456,7 +481,14 @@ export default function LearnerEnrollmentPage() {
                 </TableHeader>
                 <TableBody>
                     {paginatedLearners.map((learner) => (
-                    <TableRow key={learner.id}>
+                    <TableRow key={learner.id} data-state={selectedRows.includes(learner.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(learner.id)}
+                            onCheckedChange={() => handleSelectRow(learner.id)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell>{learner.code}</TableCell>
                         <TableCell className="font-medium">{learner.name}</TableCell>
                         <TableCell>{learner.gender}</TableCell>
@@ -485,7 +517,7 @@ export default function LearnerEnrollmentPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+                {selectedRows.length} of {filteredLearners.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

@@ -32,6 +32,7 @@ import { initialSchools, type School } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const districts = ["All", ...new Set(initialSchools.map(school => school.district))];
 const ITEMS_PER_PAGE = 5;
@@ -45,6 +46,7 @@ export default function SchoolRegistrationPage() {
   const [viewingSchool, setViewingSchool] = useState<School | undefined>(undefined);
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const filteredSchools = useMemo(() => {
     if (filterDistrict === 'All') {
@@ -74,6 +76,7 @@ export default function SchoolRegistrationPage() {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedRows([]);
   }, [filterDistrict]);
 
   const handleAddSchool = (school: Omit<School, 'id' | 'code'>) => {
@@ -119,6 +122,20 @@ export default function SchoolRegistrationPage() {
     }
     setIsFormDialogOpen(open);
   }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedSchools.map(s => s.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="flex justify-center">
@@ -212,6 +229,13 @@ export default function SchoolRegistrationPage() {
                 <Table>
                 <TableHeader>
                     <TableRow>
+                    <TableHead padding="checkbox">
+                        <Checkbox
+                        checked={selectedRows.length === paginatedSchools.length && paginatedSchools.length > 0}
+                        onCheckedChange={(value) => handleSelectAll(!!value)}
+                        aria-label="Select all"
+                        />
+                    </TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead className="hidden sm:table-cell">District</TableHead>
@@ -223,7 +247,14 @@ export default function SchoolRegistrationPage() {
                 </TableHeader>
                 <TableBody>
                     {paginatedSchools.map((school) => (
-                    <TableRow key={school.id}>
+                    <TableRow key={school.id} data-state={selectedRows.includes(school.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(school.id)}
+                            onCheckedChange={() => handleSelectRow(school.id)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell>{school.code}</TableCell>
                         <TableCell className="font-medium">{school.name}</TableCell>
                         <TableCell className="hidden sm:table-cell">{school.district}</TableCell>
@@ -251,7 +282,7 @@ export default function SchoolRegistrationPage() {
         </CardContent>
          <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              {selectedRows.length} of {filteredSchools.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

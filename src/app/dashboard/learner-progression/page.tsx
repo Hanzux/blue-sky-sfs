@@ -43,6 +43,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type LearnerWithStatus = Learner & { status: 'Active' | 'Promoted' | 'Retained' | 'Dropped Out' };
 
@@ -77,6 +78,7 @@ export default function LearnerProgressionPage() {
     const [filterSchool, setFilterSchool] = useState<string>('All');
     const [filterClass, setFilterClass] = useState<string>('All');
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedRows, setSelectedRows] = useState<string[]>([]);
     
     const [updateStatusState, updateStatusAction] = useFormState(updateLearnerStatus, null);
     const [promoteClassState, promoteClassAction] = useFormState(promoteClass, null);
@@ -160,6 +162,7 @@ export default function LearnerProgressionPage() {
 
     useEffect(() => {
         setCurrentPage(1);
+        setSelectedRows([]);
     }, [filterDistrict, filterSchool, filterClass]);
 
     const handleDistrictChange = (district: string) => {
@@ -194,6 +197,20 @@ export default function LearnerProgressionPage() {
     const handleViewClick = (learner: LearnerWithStatus) => {
         setViewingLearner(learner);
         setIsViewDialogOpen(true);
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+          setSelectedRows(paginatedLearners.map(l => l.id));
+        } else {
+          setSelectedRows([]);
+        }
+    };
+    
+    const handleSelectRow = (id: string) => {
+        setSelectedRows(prev =>
+            prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+        );
     };
 
     return (
@@ -318,6 +335,13 @@ export default function LearnerProgressionPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead padding="checkbox">
+                                            <Checkbox
+                                                checked={selectedRows.length === paginatedLearners.length && paginatedLearners.length > 0}
+                                                onCheckedChange={(value) => handleSelectAll(!!value)}
+                                                aria-label="Select all"
+                                            />
+                                        </TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Class</TableHead>
                                         <TableHead>School</TableHead>
@@ -329,6 +353,7 @@ export default function LearnerProgressionPage() {
                                     {loading ? (
                                          Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
                                             <TableRow key={i}>
+                                                <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                                                 <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                                                 <TableCell><Skeleton className="h-4 w-[180px]" /></TableCell>
@@ -337,7 +362,14 @@ export default function LearnerProgressionPage() {
                                             </TableRow>
                                          ))
                                     ) : paginatedLearners.map(learner => (
-                                        <TableRow key={learner.id}>
+                                        <TableRow key={learner.id} data-state={selectedRows.includes(learner.id) && "selected"}>
+                                            <TableCell padding="checkbox">
+                                                <Checkbox
+                                                    checked={selectedRows.includes(learner.id)}
+                                                    onCheckedChange={() => handleSelectRow(learner.id)}
+                                                    aria-label="Select row"
+                                                />
+                                            </TableCell>
                                             <TableCell className="font-medium">{learner.name}</TableCell>
                                             <TableCell>{learner.className}</TableCell>
                                             <TableCell>{learner.school}</TableCell>
@@ -393,7 +425,7 @@ export default function LearnerProgressionPage() {
                      {totalPages > 1 && (
                         <CardFooter className="flex items-center justify-between">
                             <div className="text-sm text-muted-foreground">
-                                Page {currentPage} of {totalPages}
+                                {selectedRows.length} of {filteredLearners.length} row(s) selected.
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button

@@ -65,6 +65,7 @@ import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
 import { initialSchools } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const volunteerSchema = z.object({
   id: z.string().optional(),
@@ -105,6 +106,7 @@ export default function VolunteerManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [volunteerMetrics, setVolunteerMetrics] = useState<VolunteerMetrics | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const [filterDistrict, setFilterDistrict] = useState<string>('All');
   const [filterSchool, setFilterSchool] = useState<string>('All');
@@ -308,6 +310,20 @@ export default function VolunteerManagementPage() {
 
   const totalPages = Math.ceil(filteredVolunteers.length / ITEMS_PER_PAGE);
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedVolunteers.map(v => v.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="flex flex-col items-center p-4 sm:p-6 gap-6">
         <div className="w-full max-w-4xl grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -507,6 +523,13 @@ export default function VolunteerManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead padding="checkbox">
+                    <Checkbox
+                      checked={selectedRows.length === paginatedVolunteers.length && paginatedVolunteers.length > 0}
+                      onCheckedChange={(value) => handleSelectAll(!!value)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
@@ -520,6 +543,9 @@ export default function VolunteerManagementPage() {
                 {loading
                   ? Array.from({ length: 3 }).map((_, i) => (
                       <TableRow key={i}>
+                         <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
                         <TableCell>
                           <Skeleton className="h-4 w-[150px]" />
                         </TableCell>
@@ -538,7 +564,14 @@ export default function VolunteerManagementPage() {
                       </TableRow>
                     ))
                   : paginatedVolunteers.map((volunteer) => (
-                      <TableRow key={volunteer.id}>
+                      <TableRow key={volunteer.id} data-state={selectedRows.includes(volunteer.id) && "selected"}>
+                        <TableCell padding="checkbox">
+                            <Checkbox
+                                checked={selectedRows.includes(volunteer.id)}
+                                onCheckedChange={() => handleSelectRow(volunteer.id)}
+                                aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell>{volunteer.name || '-'}</TableCell>
                         <TableCell>{volunteer.email}</TableCell>
                         <TableCell>{volunteer.phone}</TableCell>
@@ -583,7 +616,7 @@ export default function VolunteerManagementPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+               {selectedRows.length} of {filteredVolunteers.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button

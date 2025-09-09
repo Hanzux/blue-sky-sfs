@@ -70,6 +70,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const userRoles = [
   'System Admin',
@@ -126,6 +127,7 @@ export default function UserManagementPage() {
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const [createState, createFormAction] = useFormState(createUser, null);
   const [updateState, updateFormAction] = useFormState(updateUser, null);
@@ -237,6 +239,20 @@ export default function UserManagementPage() {
 
   const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedRows(paginatedUsers.map(u => u.uid));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
   return (
     <div className="flex justify-center p-4 sm:p-6">
       <Card className="w-full max-w-4xl">
@@ -346,6 +362,13 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead padding="checkbox">
+                    <Checkbox
+                      checked={selectedRows.length === paginatedUsers.length && paginatedUsers.length > 0}
+                      onCheckedChange={(value) => handleSelectAll(!!value)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
@@ -359,6 +382,9 @@ export default function UserManagementPage() {
                 {loading
                   ? Array.from({ length: 3 }).map((_, i) => (
                       <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-4" />
+                        </TableCell>
                         <TableCell>
                           <Skeleton className="h-4 w-[150px]" />
                         </TableCell>
@@ -377,7 +403,14 @@ export default function UserManagementPage() {
                       </TableRow>
                     ))
                   : paginatedUsers.map((user) => (
-                      <TableRow key={user.uid}>
+                      <TableRow key={user.uid} data-state={selectedRows.includes(user.uid) && "selected"}>
+                         <TableCell padding="checkbox">
+                            <Checkbox
+                            checked={selectedRows.includes(user.uid)}
+                            onCheckedChange={() => handleSelectRow(user.uid)}
+                            aria-label="Select row"
+                            />
+                        </TableCell>
                         <TableCell>{user.name || '-'}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
@@ -437,7 +470,7 @@ export default function UserManagementPage() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+               {selectedRows.length} of {users.length} row(s) selected.
             </div>
             <div className="flex items-center gap-2">
               <Button
