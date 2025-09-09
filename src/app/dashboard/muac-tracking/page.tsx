@@ -156,10 +156,25 @@ export default function MuacTrackingPage() {
     return 'Severe';
   }
 
-  const handleMuacChange = (learnerId: string, value: string) => {
-    const numericValue = value === '' ? null : parseFloat(value);
-    const status = getMuacStatus(numericValue);
-    setMuacRecords(prev => ({ ...prev, [learnerId]: { value: numericValue, status } }));
+  const handleMuacChange = (learnerId: string, category: 'Green' | 'Yellow' | 'Red') => {
+    let value: number;
+    let status: MuacStatus;
+
+    switch (category) {
+        case 'Green':
+            value = 12.5;
+            status = 'Normal';
+            break;
+        case 'Yellow':
+            value = 12.0;
+            status = 'Moderate';
+            break;
+        case 'Red':
+            value = 11.0;
+            status = 'Severe';
+            break;
+    }
+    setMuacRecords(prev => ({ ...prev, [learnerId]: { value, status } }));
   };
 
   const getStatusBadgeVariant = (status: MuacStatus | null) => {
@@ -371,7 +386,7 @@ export default function MuacTrackingPage() {
                 <TableRow>
                   <TableHead>Learner Name</TableHead>
                   <TableHead>Gender</TableHead>
-                  <TableHead className='text-right'>MUAC (cm)</TableHead>
+                  <TableHead className='text-right'>MUAC Category</TableHead>
                   <TableHead className='text-right'>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -381,13 +396,16 @@ export default function MuacTrackingPage() {
                     <TableCell className="font-medium">{learner.name}</TableCell>
                     <TableCell>{learner.gender}</TableCell>
                     <TableCell className="text-right">
-                      <Input
-                        type="number"
-                        className="w-24 ml-auto"
-                        placeholder="e.g. 12.5"
-                        value={muacRecords[learner.id]?.value ?? ''}
-                        onChange={(e) => handleMuacChange(learner.id, e.target.value)}
-                      />
+                       <Select onValueChange={(value) => handleMuacChange(learner.id, value as 'Green' | 'Yellow' | 'Red')}>
+                         <SelectTrigger className="w-40 ml-auto">
+                           <SelectValue placeholder="Select Category" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="Green">Green (Normal)</SelectItem>
+                           <SelectItem value="Yellow">Yellow (Moderate)</SelectItem>
+                           <SelectItem value="Red">Red (Severe)</SelectItem>
+                         </SelectContent>
+                       </Select>
                     </TableCell>
                      <TableCell className="text-right">
                         <Badge variant={getStatusBadgeVariant(muacRecords[learner.id]?.status)}>
@@ -554,3 +572,5 @@ export default function MuacTrackingPage() {
     </div>
   );
 }
+
+    
