@@ -17,6 +17,7 @@ const updateUserSchema = z.object({
   uid: z.string(),
   name: z.string().min(3),
   email: z.string().email(),
+  role: z.string().min(1, 'Role is required'),
 });
 
 const deleteUserSchema = z.object({
@@ -109,13 +110,15 @@ export async function updateUser(prevState: any, formData: FormData) {
         return { type: 'error', message: 'Invalid data provided.' };
     }
 
-    const { uid, name, email } = validatedFields.data;
+    const { uid, name, email, role } = validatedFields.data;
 
     try {
         await adminAuth.updateUser(uid, {
             displayName: name,
             email: email,
         });
+        await adminAuth.setCustomUserClaims(uid, { role });
+        
         revalidatePath('/admin/users');
         return { type: 'success', message: 'User updated successfully.' };
     } catch (error: any) {

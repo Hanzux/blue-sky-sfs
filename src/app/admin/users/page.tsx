@@ -95,6 +95,7 @@ const updateUserSchema = z.object({
   uid: z.string(),
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
+  role: z.string().min(1, { message: 'Please select a role.' }),
 });
 type UpdateUserFormValues = z.infer<typeof updateUserSchema>;
 
@@ -216,6 +217,7 @@ export default function UserManagementPage() {
       uid: user.uid,
       name: user.name || '',
       email: user.email || '',
+      role: user.role || '',
     });
     setIsEditDialogOpen(true);
   };
@@ -560,6 +562,33 @@ export default function UserManagementPage() {
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={updateForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userRoles.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
