@@ -18,6 +18,7 @@ const keyMetrics = [
     { value: 'meal_service_efficiency', label: 'Meal Service Efficiency' },
     { value: 'stock_levels', label: 'Stock Levels' },
     { value: 'enrollment_trends', label: 'Learner Enrollment Trends' },
+    { value: 'food_consumption_score', label: 'Food Consumption Score' },
 ];
 
 type GenerateReportSummaryOutput = {
@@ -47,9 +48,14 @@ export function ReportingTool() {
       
       // Mocking the AI response
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const summary = {
-          summary: `This is a mock AI summary for the "${keyMetrics.find(m => m.value === keyMetric)?.label}" metric, grouped by ${groupBy}. The analysis covers the period from ${date.from.toDateString()} to ${date.to.toDateString()}. In a real scenario, this text would contain detailed insights and trends based on the selected data.`
+      
+      let summaryText = `This is a mock AI summary for the "${keyMetrics.find(m => m.value === keyMetric)?.label}" metric, grouped by ${groupBy}. The analysis covers the period from ${date.from.toDateString()} to ${date.to.toDateString()}. In a real scenario, this text would contain detailed insights and trends based on the selected data.`;
+
+      if (keyMetric === 'food_consumption_score') {
+        summaryText = `Based on the data from ${date.from.toLocaleDateString()} to ${date.to.toLocaleDateString()}, the Food Consumption Score (FCS) for learners grouped by ${groupBy} indicates generally acceptable dietary diversity. The average FCS across all groups is 45.5. Classes in urban schools show higher consumption of protein and vegetable food groups compared to rural schools, which rely heavily on staples. It's recommended to introduce more diverse protein sources in rural schools to improve nutritional outcomes.`;
       }
+
+      const summary = { summary: summaryText };
       setResult(summary);
 
     } catch (error) {
