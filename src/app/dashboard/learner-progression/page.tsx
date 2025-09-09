@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useActionState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useFormState } from 'react-dom';
 import {
   Table,
   TableBody,
@@ -74,8 +75,8 @@ export default function LearnerProgressionPage() {
     const [filterClass, setFilterClass] = useState<string>('All');
     const [currentPage, setCurrentPage] = useState(1);
     
-    const [updateStatusState, updateStatusAction] = useActionState(updateLearnerStatus, null);
-    const [promoteClassState, promoteClassAction] = useActionState(promoteClass, null);
+    const [updateStatusState, updateStatusAction] = useFormState(updateLearnerStatus, null);
+    const [promoteClassState, promoteClassAction] = useFormState(promoteClass, null);
 
     const promoteForm = useForm<PromoteClassFormValues>({
         resolver: zodResolver(promoteClassSchema),
@@ -405,3 +406,5 @@ export default function LearnerProgressionPage() {
         </div>
     );
 }
+
+    
