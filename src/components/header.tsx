@@ -23,7 +23,6 @@ import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { navItems, adminNavItems } from '@/lib/nav-items';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Header() {
     const pathname = usePathname();
@@ -41,17 +40,6 @@ export function Header() {
             clearTimeout(handler);
         };
     }, [searchQuery, router, pathname]);
-
-     const getActiveTab = () => {
-        if (pathname.startsWith('/admin')) {
-          return 'admin';
-        }
-        // Find if the current path is a child of a nav item
-        const parentNav = navItems.find(item => pathname.startsWith(item.href) && item.href !== '/dashboard');
-        if (parentNav) return parentNav.href;
-
-        return pathname;
-    }
 
     return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
@@ -109,43 +97,6 @@ export function Header() {
         </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-            <div className='flex items-center gap-2'>
-                <Logo className="h-6 w-6" />
-                <h1 className='font-headline text-lg hidden sm:block'>Blue Sky School Feeding</h1>
-            </div>
-
-            <nav className="hidden md:flex items-center space-x-2 lg:space-x-4 ml-6">
-                {navItems.map(item => (
-                    <Link
-                        key={item.label}
-                        href={item.href}
-                        className={cn(
-                            "text-sm font-medium transition-colors hover:text-primary",
-                            pathname === item.href ? "text-primary" : "text-muted-foreground"
-                        )}
-                        >
-                        {item.label}
-                    </Link>
-                ))}
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-auto rounded-none border-0 bg-transparent px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-none data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
-                            System Admin
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                        {adminNavItems.map(item => (
-                            <DropdownMenuItem key={item.label} asChild>
-                                <Link href={item.href}>
-                                    <item.icon className="w-4 h-4 mr-2" />
-                                    {item.label}
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </nav>
-
             <div className="ml-auto flex-1 sm:flex-initial">
             <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
