@@ -77,7 +77,7 @@ export async function promoteClass(prevState: any, formData: FormData) {
     learners.forEach(learner => {
         if (learner.school === school && learner.className === className && learner.status === 'Active') {
             learner.status = 'Promoted';
-            learner.className = newClassName;
+            learner.className = newClassName; // This now correctly updates the class name
             promotedCount++;
         }
     });
