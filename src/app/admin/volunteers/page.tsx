@@ -5,6 +5,8 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useFormState } from 'react-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -57,7 +59,7 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { getVolunteers, createVolunteer, updateVolunteer, deleteVolunteer, importVolunteers } from './actions';
-import { MoreHorizontal, PlusCircle, Users, School, Upload, Download, HandHeart } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, School, Upload, Download, HandHeart, FileText } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { useAuditLog } from '@/contexts/audit-log-context';
@@ -245,6 +247,29 @@ export default function VolunteerManagementPage() {
     event.target.value = ''; // Reset file input
   }
   
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+    const tableColumns = ["Name", "Email", "Phone", "School"];
+    const tableRows = volunteers.map(v => [
+        v.name,
+        v.email,
+        v.phone,
+        v.school,
+    ]);
+
+    doc.setFontSize(18);
+    doc.text("Volunteer List", 14, 22);
+    
+    (doc as any).autoTable({
+        startY: 30,
+        head: [tableColumns],
+        body: tableRows,
+    });
+    
+    doc.save('volunteer_list.pdf');
+    addAuditLog({ action: 'Volunteer Data Exported', details: `Exported volunteer list as PDF.` });
+  }
+
   const formAction = selectedVolunteer ? updateFormAction : createFormAction;
 
   const paginatedVolunteers = useMemo(() => {
@@ -309,6 +334,9 @@ export default function VolunteerManagementPage() {
                     <a href="/volunteer_template.csv" download>
                         <Download className="mr-2 h-4 w-4" /> Template
                     </a>
+                </Button>
+                 <Button variant="outline" onClick={handleExportPdf} disabled={volunteers.length === 0}>
+                    <FileText className="mr-2 h-4 w-4" /> Export to PDF
                 </Button>
                 <Dialog
                 open={isFormDialogOpen}
@@ -585,3 +613,5 @@ export default function VolunteerManagementPage() {
     </div>
   );
 }
+
+    
